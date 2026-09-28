@@ -6,13 +6,13 @@
 
 ## Summary
 
-Xây dựng web application Kanban cho nhóm nhỏ với đăng ký/đăng nhập email-mật khẩu, board có vai trò chủ sở hữu/thành viên, column và card, kéo thả cập nhật tức thì có rollback, assign, comment và Activity Log. Dùng Next.js App Router + TypeScript cho cả giao diện và backend-for-frontend, Supabase Auth cho danh tính và Supabase Postgres cho dữ liệu. Mọi dữ liệu board được bảo vệ bằng Row Level Security (RLS); các thao tác nhiều bản ghi cần tính nguyên tử, như tạo board mặc định hay di chuyển card và ghi log, thực hiện trong transaction ở Postgres.
+Xây dựng web application Kanban cho nhóm nhỏ với đăng ký/đăng nhập email-mật khẩu, giao diện tiếng Việt/English, board có vai trò chủ sở hữu/thành viên, column và card, kéo thả cập nhật tức thì có rollback, assign, comment và Activity Log. Dùng Next.js App Router + TypeScript cho cả giao diện và backend-for-frontend, Supabase Auth cho danh tính và Supabase Postgres cho dữ liệu. Mọi dữ liệu board được bảo vệ bằng Row Level Security (RLS); các thao tác nhiều bản ghi cần tính nguyên tử, như tạo board mặc định hay di chuyển card và ghi log, thực hiện trong transaction ở Postgres.
 
 ## Technical Context
 
 **Language/Version**: TypeScript 5.x (đã có trong repo), Node.js 20.9 trở lên theo yêu cầu Next.js hiện hành.
 
-**Primary Dependencies**: Next.js 16.3.6, React 19.2.8, Supabase JS và `@supabase/ssr` (chưa cài; pin phiên bản tương thích khi triển khai).
+**Primary Dependencies**: Next.js 16.3.6, React 19.2.8, Supabase JS và `@supabase/ssr`. I18n dùng TypeScript message dictionaries nội bộ, không thêm thư viện runtime.
 
 **Storage**: Supabase Postgres; Supabase Auth lưu danh tính và quản lý phiên email/mật khẩu.
 
@@ -24,7 +24,7 @@ Xây dựng web application Kanban cho nhóm nhỏ với đăng ký/đăng nhậ
 
 **Performance Goals**: Đạt SC-002: ít nhất 95% thao tác chuyển card được xác nhận trong 2 giây ở kết nối bình thường. Đạt SC-005 trên board 10 thành viên/500 card: mở board và tìm trạng thái card trong tối đa 5 giây ở ít nhất 90% lần thử. Kéo thả cập nhật optimistic; rollback nếu API/database từ chối thao tác.
 
-**Constraints**: Phân quyền bắt buộc ở server/database; dùng Supabase publishable key ở browser cùng RLS/grants tối thiểu; không dùng service-role/secret key ở browser. Bật RLS trên các bảng exposed; mọi truy vấn giới hạn theo board membership và role. Ghi activity cùng transaction với thay đổi tương ứng. Không cache dữ liệu board cá nhân hóa hoặc response đang set auth cookies dùng chung giữa người dùng. Ưu tiên Server Components cho render/đọc dữ liệu và giới hạn Client Components ở board tương tác.
+**Constraints**: Phân quyền bắt buộc ở server/database; dùng Supabase publishable key ở browser cùng RLS/grants tối thiểu; không dùng service-role/secret key ở browser. Bật RLS trên các bảng exposed; mọi truy vấn giới hạn theo board membership và role. Ghi activity cùng transaction với thay đổi tương ứng. Không cache dữ liệu board cá nhân hóa hoặc response đang set auth cookies dùng chung giữa người dùng. Ưu tiên Server Components cho render/đọc dữ liệu và giới hạn Client Components ở board tương tác. UI dùng dictionaries có type-safe keys cho `vi` và `en`; locale mặc định `vi`, lưu trong cookie preference và khởi tạo ở root layout để SSR render đúng ngôn ngữ. Dịch system-generated strings, không dịch nội dung do người dùng nhập.
 
 **Scale/Scope**: Nhóm tối đa khoảng 10 thành viên/board; kiểm thử trải nghiệm tới 500 card/board. MVP gồm auth, board, column, card, assign đơn, comment và activity log; không gồm email invitation, xác minh email, khôi phục mật khẩu, realtime push hay mobile chuyên biệt.
 
@@ -37,7 +37,7 @@ Xây dựng web application Kanban cho nhóm nhỏ với đăng ký/đăng nhậ
 | Trải nghiệm mượt mà, nhất quán | PASS | Board render nhanh; thao tác kéo thả optimistic có rollback; loading/error/empty states rõ ràng. |
 | Hiệu năng là yêu cầu sản phẩm | PASS | Server Components cho phần đọc/render; client bundle giới hạn trong tương tác; đo theo SC-002/SC-005. |
 | Dữ liệu Kanban nhất quán và phục hồi | PASS | Transaction cho move/activity, kiểm soát vị trí và rollback khi lỗi; kiểm tra xung đột đồng thời. |
-| Dễ sử dụng cho nhiều người dùng | PASS | Có thao tác thay thế kéo thả bằng bàn phím; trạng thái không phụ thuộc màu sắc; nội dung tiếng Việt. |
+| Dễ sử dụng cho nhiều người dùng | PASS | Có thao tác thay thế kéo thả bằng bàn phím; trạng thái không phụ thuộc màu sắc; nội dung UI hỗ trợ tiếng Việt và tiếng Anh. |
 | Chất lượng, bảo mật, khả năng quan sát | PASS | Supabase Auth cookie SSR, RLS + least-privilege grants, xác minh identity và quyền trong từng request; activity/log không lưu bí mật. |
 | Tài liệu và quy trình dự án | PASS | Spec, plan và artifacts viết tiếng Việt; acceptance criteria được giữ làm chuẩn kiểm chứng. |
 
@@ -64,6 +64,7 @@ specs/001-team-kanban/
 
 ```text
 app/
+├── page.tsx
 ├── (auth)/
 │   ├── login/page.tsx
 │   └── signup/page.tsx
@@ -83,8 +84,14 @@ app/
         └── activity/route.ts
 components/
 ├── board/
+├── i18n/
+├── auth/
 └── ui/
 lib/
+├── i18n/
+│   ├── config.ts
+│   ├── messages.ts
+│   └── server.ts
 ├── supabase/
 │   ├── client.ts
 │   └── server.ts

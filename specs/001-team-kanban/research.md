@@ -52,6 +52,16 @@
 
 **Sources**: Context7 `/vercel/next.js/v16.2.9` (Server/Client Components, BFF, Proxy boundaries and data security); [Next.js Route Handlers](https://nextjs.org/docs/app/getting-started/route-handlers), [Next.js Backend for Frontend](https://nextjs.org/docs/app/guides/backend-for-frontend), [Next.js Data Security](https://nextjs.org/docs/app/guides/data-security).
 
+## 6. Internationalization cho Vietnamese và English
+
+**Decision**: Giai đoạn đầu dùng TypeScript dictionaries nội bộ với `vi`/`en`, type-safe message keys, React context/provider và cookie preference `team-kanban-locale`. Mặc định `vi`; root layout đọc cookie để render đúng locale ngay từ server, language switcher cập nhật UI tức thì và lưu lựa chọn một năm. Server Actions đọc cùng preference để trả validation/auth messages đúng locale. Chỉ system-generated UI text được dịch; board names, card titles, comments và dữ liệu người dùng khác giữ nguyên.
+
+**Rationale**: MVP chỉ cần hai ngôn ngữ và không cần locale nằm trong URL/SEO. Cookie preference tránh đổi route hay auth redirect, đồng thời dùng chung được cho server/client rendering. Không thêm dependency i18n runtime; dictionary được tách theo namespace khi các story mở rộng.
+
+**Constraints**: Mọi story mới phải dùng translation keys cho labels, accessibility text và loading/empty/error states; không hard-code thêm câu hiển thị cho user. Message keys bắt buộc có bản dịch ở cả `vi` và `en`.
+
+**Alternatives considered**: Locale trong URL phù hợp khi cần chia sẻ link/SEO theo ngôn ngữ nhưng sẽ làm đổi route structure. Browser `Accept-Language` không được dùng làm preference chính vì sản phẩm yêu cầu default Vietnamese và có lựa chọn tường minh của user.
+
 ## Công cụ tra cứu
 
 Context7 đã được truy vấn trong phiên cập nhật này cho `/vercel/next.js/v16.2.9`, `/supabase/ssr` và `/supabase/supabase`. Repository đang cài Next.js 16.3.6; đối chiếu thêm docs cài trong `node_modules/next/dist/docs` vì version Context7 gần nhất được trả về là 16.2.9. Các nguồn và quyết định được rà soát ngày 2026-09-27; xác nhận package versions trước implementation.

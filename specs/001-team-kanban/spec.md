@@ -69,6 +69,21 @@ Thành viên xem Activity Log của board để biết các thay đổi quan tr�
 2. **Given** Activity Log có nhiều mục, **When** thành viên mở nhật ký, **Then** các hoạt động mới nhất được hiển thị trước.
 3. **Given** người dùng không có quyền truy cập board, **When** họ yêu cầu Activity Log, **Then** nội dung nhật ký không được tiết lộ.
 
+### User Story 4 - Sử dụng giao diện tiếng Việt hoặc tiếng Anh (Priority: P2)
+
+Người dùng chọn Vietnamese hoặc English để đọc giao diện theo ngôn ngữ họ quen dùng. Lựa chọn được giữ khi chuyển trang và tải lại trên cùng trình duyệt; nội dung do người dùng nhập được giữ nguyên.
+
+**Why this priority**: Nhóm có thể phối hợp dù thành viên quen dùng ngôn ngữ giao diện khác nhau, đồng thời lựa chọn ngôn ngữ không làm thay đổi dữ liệu công việc.
+
+**Independent Test**: Chuyển từ tiếng Việt sang English ở trang đăng nhập, mở trang đăng ký và quay lại; xác nhận nhãn/trạng thái đổi ngôn ngữ và lựa chọn vẫn còn sau tải lại. Lặp lại theo chiều ngược lại.
+
+**Acceptance Scenarios**:
+
+1. **Given** người dùng chưa chọn ngôn ngữ, **When** họ mở ứng dụng, **Then** giao diện hiển thị tiếng Việt.
+2. **Given** người dùng chọn English, **When** họ chuyển giữa các trang hoặc tải lại, **Then** giao diện tiếp tục hiển thị English.
+3. **Given** giao diện đang dùng một trong hai ngôn ngữ, **When** người dùng đổi lựa chọn, **Then** nội dung UI, validation, loading, empty và error states dùng ngôn ngữ mới mà không cần đăng xuất.
+4. **Given** board có nội dung do người dùng nhập, **When** người dùng đổi ngôn ngữ giao diện, **Then** tên board, column, card và comment vẫn được giữ nguyên.
+
 ### Edge Cases
 
 - Tiêu đề board, column hoặc card rỗng hay chỉ gồm khoảng trắng bị từ chối với thông báo có thể hiểu được.
@@ -99,6 +114,7 @@ Thành viên xem Activity Log của board để biết các thay đổi quan tr�
 - **FR-014**: Khi không có dữ liệu, đang tải hoặc xảy ra lỗi, giao diện MUST hiển thị trạng thái và hướng xử lý phù hợp bằng tiếng Việt.
 - **FR-015**: Người dùng MUST có thể đăng ký bằng email và mật khẩu, đăng nhập, đăng xuất và chỉ truy cập board sau khi đăng nhập thành công. Người tạo board là chủ sở hữu; người được chủ sở hữu thêm vào board là thành viên.
 - **FR-016**: Email tài khoản MUST là duy nhất; khi đăng nhập thất bại, hệ thống MUST thông báo lỗi mà không tiết lộ email có đăng ký hay không.
+- **FR-017**: Giao diện MUST hỗ trợ tiếng Việt và tiếng Anh, mặc định là tiếng Việt, cho phép đổi ngôn ngữ mà không cần đăng xuất và ghi nhớ lựa chọn trên cùng trình duyệt. Mọi system-generated UI text, gồm validation, accessibility labels và các trạng thái loading/empty/error, MUST dùng ngôn ngữ đang chọn; nội dung do người dùng nhập MUST giữ nguyên.
 
 ### Key Entities
 
@@ -119,6 +135,7 @@ Thành viên xem Activity Log của board để biết các thay đổi quan tr�
 - **SC-004**: 100% các sự kiện thuộc phạm vi FR-008 xuất hiện trong Activity Log với người thực hiện và thời điểm chính xác sau khi thao tác được lưu thành công.
 - **SC-005**: Trong thử nghiệm với 10 thành viên và 500 card trên một board, người dùng có thể mở board và xác định trạng thái của một card trong tối đa 5 giây ở ít nhất 90% lần thử.
 - **SC-006**: Không người dùng nào ngoài thành viên được cấp quyền có thể xem board, comment hoặc Activity Log trong các kiểm tra truy cập trái phép.
+- **SC-007**: Người dùng có thể chuyển đổi Vietnamese/English và tiếp tục thấy ngôn ngữ đã chọn sau điều hướng hoặc tải lại; dữ liệu board do người dùng nhập không đổi khi chuyển ngôn ngữ.
 
 ## Assumptions
 
@@ -130,3 +147,4 @@ Thành viên xem Activity Log của board để biết các thay đổi quan tr�
 - Comment được giữ cùng card; Activity Log là nhật ký cơ bản để theo dõi hoạt động gần đây, không bao gồm xuất báo cáo hay cấu hình retention.
 - Giao diện responsive trên màn hình desktop và tablet; trải nghiệm mobile chuyên biệt chưa phải tiêu chí phát hành của phiên bản đầu.
 - Phản hồi hiệu năng đo trong Success Criteria giả định kết nối hoạt động bình thường; ngưỡng được xem xét lại khi có dữ liệu sử dụng thực tế.
+- Ngôn ngữ mặc định là tiếng Việt; lựa chọn Vietnamese/English được lưu bằng browser preference trên cùng trình duyệt, chưa đồng bộ giữa các thiết bị hay tài khoản.

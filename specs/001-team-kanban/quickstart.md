@@ -48,7 +48,17 @@ Hướng dẫn smoke-test sau khi implementation hoàn tất. Đây là luồng 
 
 **Expected**: Các quyền đúng theo vai trò; thao tác bị từ chối không làm thay đổi dữ liệu và response không tiết lộ dữ liệu board.
 
-## Scenario B — Card, assign, comment và activity
+## Scenario B — Vietnamese / English
+
+1. Mở landing page khi chưa có preference; xác nhận UI mặc định là tiếng Việt.
+2. Chọn `English`; xác nhận heading, mô tả, nút và language accessibility label đổi ngay mà không cần tải lại.
+3. Mở trang đăng ký rồi quay lại trang đăng nhập; xác nhận English vẫn được chọn.
+4. Tải lại trang; xác nhận English được giữ. Chọn `Tiếng Việt` và xác nhận giao diện đổi lại ngay.
+5. Trên board có tên/card/comment do người dùng nhập, đổi locale và xác nhận dữ liệu đó không bị dịch hay sửa.
+
+**Expected**: Locale mặc định là `vi`, preference sống qua điều hướng/tải lại trong cùng browser; mọi system-generated UI text dùng đúng locale và user-generated content không đổi.
+
+## Scenario C — Card, assign, comment và activity
 
 1. Member tạo card trong To Do; owner và member đều thấy card.
 2. Member gán owner làm assignee; xác nhận assignee hiển thị. Bỏ gán rồi gán member lại.
@@ -57,7 +67,7 @@ Hướng dẫn smoke-test sau khi implementation hoàn tất. Đây là luồng 
 
 **Expected**: Chỉ member hiện tại của board được assign; comment và activity chỉ hiển thị với người có quyền board.
 
-## Scenario C — Drag/drop, rollback và keyboard
+## Scenario D — Drag/drop, rollback và keyboard
 
 1. Kéo card từ To Do sang In Progress; xác nhận UI đổi ngay mà không chờ response.
 2. Tải lại board; xác nhận column và thứ tự được lưu.
@@ -67,7 +77,7 @@ Hướng dẫn smoke-test sau khi implementation hoàn tất. Đây là luồng 
 
 **Expected**: UI optimistic khớp persistence; lỗi/conflict không để trạng thái giả thành công; bàn phím cung cấp khả năng tương đương.
 
-## Scenario D — Board và tải dữ liệu
+## Scenario E — Board và tải dữ liệu
 
 1. Tạo board thử nghiệm có tối đa 10 thành viên và 500 card phân bố trên các column.
 2. Đo 20 lần mở board và tìm trạng thái một card; ghi nhận thời gian và tính tỷ lệ lần thử hoàn tất trong 5 giây.
