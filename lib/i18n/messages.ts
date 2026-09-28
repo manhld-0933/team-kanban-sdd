@@ -1,0 +1,86 @@
+import type { Locale } from "@/lib/i18n/config";
+
+const messages = {
+  vi: {
+    appTitle: "Team Kanban",
+    appDescription: "Sắp xếp công việc nhóm trên một bảng Kanban rõ ràng.",
+    brandLabel: "Team Kanban trang chủ",
+    languageLabel: "Ngôn ngữ",
+    languageVietnamese: "Tiếng Việt",
+    languageEnglish: "English",
+    eyebrow: "KHÔNG GIAN LÀM VIỆC CỦA NHÓM",
+    loginTitle: "Chào mừng trở lại",
+    signupTitle: "Tạo tài khoản",
+    loginDescription: "Đăng nhập để tiếp tục công việc cùng nhóm của bạn.",
+    signupDescription: "Tạo tài khoản để bắt đầu sắp xếp công việc cùng nhóm.",
+    emailLabel: "Email",
+    emailPlaceholder: "ten@congty.com",
+    emailRequired: "Vui lòng nhập email.",
+    passwordLabel: "Mật khẩu",
+    passwordPlaceholder: "Ít nhất 8 ký tự",
+    passwordRequired: "Vui lòng nhập mật khẩu.",
+    loginButton: "Đăng nhập",
+    signupButton: "Tạo tài khoản",
+    submitting: "Đang xử lý…",
+    haveAccount: "Đã có tài khoản?",
+    noAccount: "Chưa có tài khoản?",
+    linkLogin: "Đăng nhập",
+    linkSignup: "Tạo tài khoản",
+    missingCredentials: "Vui lòng nhập email và mật khẩu.",
+    invalidEmail: "Email không hợp lệ.",
+    invalidPassword: "Mật khẩu cần có từ 8 đến 128 ký tự.",
+    loginFailure: "Email hoặc mật khẩu không đúng. Vui lòng thử lại.",
+    signupFailure: "Chưa thể tạo tài khoản. Vui lòng kiểm tra thông tin và thử lại.",
+    signupSuccess: "Tài khoản đã được tạo. Hãy đăng nhập để tiếp tục.",
+    homeTitle: "Công việc rõ ràng, cả nhóm cùng tiến",
+    homeDescription: "Sắp xếp nhiệm vụ, theo dõi tiến độ và phối hợp trên cùng một Kanban board.",
+    homeLogin: "Đăng nhập",
+    homeSignup: "Bắt đầu miễn phí",
+  },
+  en: {
+    appTitle: "Team Kanban",
+    appDescription: "Organize team work on a clear Kanban board.",
+    brandLabel: "Team Kanban home",
+    languageLabel: "Language",
+    languageVietnamese: "Tiếng Việt",
+    languageEnglish: "English",
+    eyebrow: "YOUR TEAM WORKSPACE",
+    loginTitle: "Welcome back",
+    signupTitle: "Create your account",
+    loginDescription: "Sign in to continue working with your team.",
+    signupDescription: "Create an account to start organizing work with your team.",
+    emailLabel: "Email",
+    emailPlaceholder: "name@company.com",
+    emailRequired: "Enter your email address.",
+    passwordLabel: "Password",
+    passwordPlaceholder: "At least 8 characters",
+    passwordRequired: "Enter your password.",
+    loginButton: "Sign in",
+    signupButton: "Create account",
+    submitting: "Please wait…",
+    haveAccount: "Already have an account?",
+    noAccount: "New to Team Kanban?",
+    linkLogin: "Sign in",
+    linkSignup: "Create an account",
+    missingCredentials: "Enter your email and password.",
+    invalidEmail: "Enter a valid email address.",
+    invalidPassword: "Password must be 8 to 128 characters long.",
+    loginFailure: "Email or password is incorrect. Please try again.",
+    signupFailure: "We couldn't create your account. Check your details and try again.",
+    signupSuccess: "Your account was created. Sign in to continue.",
+    homeTitle: "Clear work. Shared progress.",
+    homeDescription: "Organize tasks, track progress, and collaborate on one Kanban board.",
+    homeLogin: "Sign in",
+    homeSignup: "Get started",
+  },
+} as const;
+
+export type MessageKey = keyof (typeof messages)["vi"];
+
+export function getMessages(locale: Locale) {
+  return messages[locale];
+}
+
+export function translate(locale: Locale, key: MessageKey): string {
+  return messages[locale][key];
+}
