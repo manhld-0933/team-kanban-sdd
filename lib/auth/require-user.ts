@@ -4,14 +4,26 @@ export type AuthenticatedUser = {
   id: string;
 };
 
-export async function requireUser(): Promise<AuthenticatedUser> {
+export class AuthenticationError extends Error {
+  constructor() {
+    super("UNAUTHENTICATED");
+    this.name = "AuthenticationError";
+  }
+}
+
+export async function getAuthenticatedClient() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
   const subject = data?.claims?.sub;
 
   if (error || typeof subject !== "string" || subject.length === 0) {
-    throw new Error("UNAUTHENTICATED");
+    throw new AuthenticationError();
   }
 
-  return { id: subject };
+  return { supabase, user: { id: subject } satisfies AuthenticatedUser };
+}
+
+export async function requireUser(): Promise<AuthenticatedUser> {
+  const { user } = await getAuthenticatedClient();
+  return user;
 }

@@ -6,6 +6,8 @@ export type ApiErrorCode =
   | "VALIDATION_ERROR"
   | "NOT_FOUND"
   | "CONFLICT"
+  | "VERSION_CONFLICT"
+  | "COLUMN_NOT_EMPTY"
   | "INTERNAL_ERROR";
 
 export function apiSuccess<T>(data: T, status = 200) {
