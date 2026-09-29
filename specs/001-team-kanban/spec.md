@@ -84,6 +84,22 @@ Người dùng chọn Vietnamese hoặc English để đọc giao diện theo ng
 3. **Given** giao diện đang dùng một trong hai ngôn ngữ, **When** người dùng đổi lựa chọn, **Then** nội dung UI, validation, loading, empty và error states dùng ngôn ngữ mới mà không cần đăng xuất.
 4. **Given** board có nội dung do người dùng nhập, **When** người dùng đổi ngôn ngữ giao diện, **Then** tên board, column, card và comment vẫn được giữ nguyên.
 
+### User Story 5 - Quản lý phiên đăng nhập và tạo dữ liệu mẫu (Priority: P2)
+
+Người dùng đang đăng nhập được đưa thẳng về danh sách board nếu mở lại màn login/signup; họ có thể đăng xuất từ workspace để đăng nhập bằng tài khoản khác. Người dùng cũng có thể tạo một board mẫu có card, membership và Activity Log để khám phá giao diện.
+
+**Why this priority**: Hành vi phiên rõ ràng giúp tránh trạng thái auth khó hiểu; dữ liệu mẫu giúp người dùng xem nhanh các luồng board mà không phải tự nhập dữ liệu ban đầu.
+
+**Independent Test**: Đăng nhập, mở `/login` và xác nhận được chuyển về `/boards`; đăng xuất và xác nhận về `/login`, sau đó `/boards` yêu cầu đăng nhập. Nhấn tạo dữ liệu mẫu và xác nhận chỉ có tối đa một demo board cho tài khoản, có ba column mặc định, sample cards, membership của owner và Activity Log được ghi.
+
+**Acceptance Scenarios**:
+
+1. **Given** người dùng đã đăng nhập, **When** họ mở `/login` hoặc `/signup`, **Then** server chuyển họ về `/boards` và không render auth form.
+2. **Given** người dùng đang ở workspace, **When** họ chọn đăng xuất, **Then** Supabase session/cookie được xóa và trình duyệt chuyển tới `/login`; truy cập lại `/boards` yêu cầu đăng nhập.
+3. **Given** người dùng đã đăng nhập và chưa có demo board, **When** họ chọn tạo dữ liệu mẫu, **Then** hệ thống tạo một board cho owner hiện tại với ba column mặc định, các card ví dụ, membership của owner và activity tương ứng.
+4. **Given** người dùng đã có demo board hoặc gửi request tạo lặp lại, **When** họ tạo dữ liệu mẫu lần nữa, **Then** hệ thống trả về demo board hiện có và không tạo bản sao.
+5. **Given** hai request tạo demo board đồng thời, **When** chúng được xử lý, **Then** database chỉ giữ một demo board cho owner và cả hai request nhận cùng board đó.
+
 ### Edge Cases
 
 - Tiêu đề board, column hoặc card rỗng hay chỉ gồm khoảng trắng bị từ chối với thông báo có thể hiểu được.
@@ -115,6 +131,9 @@ Người dùng chọn Vietnamese hoặc English để đọc giao diện theo ng
 - **FR-015**: Người dùng MUST có thể đăng ký bằng email và mật khẩu, đăng nhập, đăng xuất và chỉ truy cập board sau khi đăng nhập thành công. Người tạo board là chủ sở hữu; người được chủ sở hữu thêm vào board là thành viên.
 - **FR-016**: Email tài khoản MUST là duy nhất; khi đăng nhập thất bại, hệ thống MUST thông báo lỗi mà không tiết lộ email có đăng ký hay không.
 - **FR-017**: Giao diện MUST hỗ trợ tiếng Việt và tiếng Anh, mặc định là tiếng Việt, cho phép đổi ngôn ngữ mà không cần đăng xuất và ghi nhớ lựa chọn trên cùng trình duyệt. Mọi system-generated UI text, gồm validation, accessibility labels và các trạng thái loading/empty/error, MUST dùng ngôn ngữ đang chọn; nội dung do người dùng nhập MUST giữ nguyên.
+- **FR-018**: Người dùng có session hợp lệ khi mở `/login` hoặc `/signup` MUST được redirect ở server tới `/boards`; người dùng chưa đăng nhập khi truy cập workspace MUST được redirect tới `/login`.
+- **FR-019**: Workspace MUST cung cấp thao tác đăng xuất để kết thúc Supabase session, xóa auth cookies và redirect tới `/login`; thao tác thất bại MUST hiển thị thông báo phù hợp.
+- **FR-020**: Người dùng đã đăng nhập MUST có thể tạo dữ liệu mẫu gồm đúng một demo board cho mỗi owner, ba column mặc định, cards mẫu, membership owner và Activity Log tương ứng. Thao tác MUST idempotent và transaction bảo đảm không tạo board trùng khi request lặp hoặc đồng thời.
 
 ### Key Entities
 
@@ -136,6 +155,8 @@ Người dùng chọn Vietnamese hoặc English để đọc giao diện theo ng
 - **SC-005**: Trong thử nghiệm với 10 thành viên và 500 card trên một board, người dùng có thể mở board và xác định trạng thái của một card trong tối đa 5 giây ở ít nhất 90% lần thử.
 - **SC-006**: Không người dùng nào ngoài thành viên được cấp quyền có thể xem board, comment hoặc Activity Log trong các kiểm tra truy cập trái phép.
 - **SC-007**: Người dùng có thể chuyển đổi Vietnamese/English và tiếp tục thấy ngôn ngữ đã chọn sau điều hướng hoặc tải lại; dữ liệu board do người dùng nhập không đổi khi chuyển ngôn ngữ.
+- **SC-008**: 100% phiên đăng nhập đã có hiệu lực được redirect khỏi `/login` và `/signup`; sau logout, truy cập workspace không còn được phép cho đến khi đăng nhập lại.
+- **SC-009**: Gọi thao tác tạo dữ liệu mẫu lặp lại hoặc đồng thời vẫn chỉ tạo một demo board cho cùng owner; board có ba column, cards, membership và activity entries sau khi transaction commit.
 
 ## Assumptions
 

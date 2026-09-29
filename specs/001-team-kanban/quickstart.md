@@ -55,14 +55,24 @@ Hướng dẫn smoke-test sau khi implementation hoàn tất. Đây là luồng 
 ## Scenario A — Signup/login và quyền board
 
 1. Đăng ký owner bằng email/password, đăng xuất rồi đăng nhập lại.
-2. Tạo board mới.
-3. Xác nhận board có đúng ba column mặc định To Do, In Progress, Done; owner có thể đổi tên board và quản lý column.
-4. Đăng ký member bằng email/password khác; owner thêm email member vào board.
-5. Mở board trong session member. Xác nhận member xem được board và không thể đổi tên board, quản lý thành viên hoặc sửa/xóa column.
-6. Đăng xuất member; truy cập lại URL board. Xác nhận bị chuyển tới login hoặc không thấy nội dung board.
-7. Với tài khoản không thuộc board, thử gọi đường dẫn/API board trực tiếp; xác nhận không thể đọc board, comments hay activity.
+2. Khi đang đăng nhập, mở `/login` và `/signup`; xác nhận server chuyển tới `/boards`.
+3. Tạo board mới.
+4. Xác nhận board có đúng ba column mặc định To Do, In Progress, Done; owner có thể đổi tên board và quản lý column.
+5. Đăng ký member bằng email/password khác; owner thêm email member vào board.
+6. Mở board trong session member. Xác nhận member xem được board và không thể đổi tên board, quản lý thành viên hoặc sửa/xóa column.
+7. Đăng xuất member; truy cập lại URL board. Xác nhận bị chuyển tới login hoặc không thấy nội dung board.
+8. Với tài khoản không thuộc board, thử gọi đường dẫn/API board trực tiếp; xác nhận không thể đọc board, comments hay activity.
 
 **Expected**: Các quyền đúng theo vai trò; thao tác bị từ chối không làm thay đổi dữ liệu và response không tiết lộ dữ liệu board.
+
+## Scenario F — Session lifecycle và demo board
+
+1. Khi đang đăng nhập, mở trực tiếp `/login` hoặc `/signup`; xác nhận cả hai route chuyển tới `/boards`.
+2. Chọn logout ở workspace; xác nhận session kết thúc, UI chuyển về `/login`, và truy cập `/boards` lại yêu cầu đăng nhập.
+3. Đăng nhập lại và tạo demo board; xác nhận có đúng ba column, cards mẫu, owner membership, assignee hợp lệ và activity entries.
+4. Gọi thao tác tạo demo board lần nữa hoặc gửi hai request đồng thời; xác nhận cùng một demo board được trả về và không có bản ghi trùng.
+
+**Expected**: Auth redirects giữ trạng thái nhất quán và tạo demo board idempotent không nhân bản dữ liệu.
 
 ## Scenario B — Vietnamese / English
 

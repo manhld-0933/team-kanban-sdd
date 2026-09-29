@@ -24,11 +24,18 @@ Contract cho JSON Route Handlers dưới `/api/v1`. Đăng ký/đăng nhập/đ�
 
 Auth flow do Supabase Auth xử lý; nơi triển khai UI phải dùng cookie session SSR. Không ghi password vào application logs.
 
+- Người có session hợp lệ mở `/login` hoặc `/signup` được server redirect tới `/boards`; người chưa đăng nhập mở workspace được redirect tới `/login`.
+- Logout gọi Supabase `signOut()`, chuyển tiếp cookie xóa session về browser và redirect tới `/login`.
+
 ## Boards
 
 ### `GET /api/v1/boards`
 
 Liệt kê board mà current user là member. `200 { "data": [{ "id", "name", "role", "createdAt" }] }`.
+
+### `POST /api/v1/demo/board`
+
+Người dùng đã đăng nhập tạo demo board cho chính mình. Request không có body. Lần đầu trả `201 { "data": { "id", "name", "isDemo": true } }`; các lần gọi sau trả `200` cùng demo board hiện có. Transaction tạo ba column mặc định, cards mẫu, owner membership, assignee mẫu thuộc board và Activity Log tương ứng. Tạo demo board và activity phải nguyên tử; unique partial index xử lý request đồng thời.
 
 ### `POST /api/v1/boards`
 

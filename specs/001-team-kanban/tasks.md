@@ -112,6 +112,23 @@
 
 ---
 
+## Phase 7: User Story 5 — Quản lý phiên đăng nhập và tạo dữ liệu mẫu (Priority: P2)
+
+**Goal**: Giữ luồng auth rõ ràng sau khi đăng nhập/đăng xuất và cung cấp một demo board sẵn dữ liệu cho từng owner.
+
+**Independent Test**: Đang đăng nhập mở `/login` và `/signup` sẽ về `/boards`; logout xóa session và đưa về `/login`, truy cập `/boards` yêu cầu login lại. Tạo demo board cho owner có đúng ba column mặc định, sample cards, membership/assignee và activity; gọi lại hoặc đồng thời vẫn trả cùng demo board.
+
+### Implementation for User Story 5
+
+- [ ] T033 [P] [US5] Tạo auth-page guard dùng server-side `getClaims()` trong `lib/auth/redirect-authenticated.ts` và áp dụng cho `app/(auth)/login/page.tsx`, `app/(auth)/signup/page.tsx`; session hợp lệ redirect tới `/boards`, request chưa xác thực tiếp tục render form và locale preference không đổi.
+- [ ] T034 [US5] Hoàn thiện logout UX trong `components/auth/logout-button.tsx`, `app/(workspace)/layout.tsx`, `app/(auth)/actions.ts` và `lib/i18n/messages.ts`; gọi Supabase `signOut()`, trả cookie xóa session, hiển thị lỗi localized nếu signOut thất bại và redirect tới `/login` khi thành công.
+- [ ] T035 [P] [US5] Tạo `supabase/migrations/202609290011_demo_board.sql`: thêm `boards.is_demo boolean not null default false`, unique partial index tối đa một demo board mỗi `created_by`, và transaction `create_demo_board` khóa theo owner trước khi kiểm tra/tạo để trả board hiện có kể cả request đồng thời; lần đầu tạo ba column mặc định, ít nhất ba card mẫu, owner membership, assignee là owner hiện tại và activity log qua triggers hiện có. Function chỉ dùng identity `auth.uid()`, `search_path` an toàn, grants tối thiểu và không cần service-role key.
+- [ ] T036 [US5] Tạo `POST /api/v1/demo/board` trong `app/api/v1/demo/board/route.ts`; xác thực session ở server, gọi `create_demo_board` qua Supabase RPC, trả `201` khi vừa tạo và `200` khi đã tồn tại, đồng thời không nhận `userId` từ request.
+- [ ] T037 [US5] Tạo nút `components/board/demo-data-button.tsx` và tích hợp vào `app/(workspace)/boards/page.tsx`; cập nhật `lib/boards/types.ts`, `lib/boards/queries.ts` để nhận biết `is_demo`, ẩn nút khi demo board đã có, disable khi request pending, mở board sau khi thành công và hiển thị success/error/loading text bằng cả hai message dictionaries trong `lib/i18n/messages.ts`.
+- [ ] T038 [US5] Cập nhật `specs/001-team-kanban/quickstart.md` với Scenario F kiểm tra redirect login/signup khi đã xác thực, logout rồi truy cập workspace, tạo demo board, member/assignment/activity và tính idempotent khi request lặp hoặc đồng thời.
+
+---
+
 ## Dependencies & Execution Order
 
 ### Dependency Graph
@@ -123,6 +140,7 @@ Setup (T001-T002)
               └── US2 P2 (T019-T024)
                     └── US3 P3 (T025-T027)
                           └── Polish (T028-T032)
+                                └── US5 P2 (T033-T038)
 ```
 
 ### Story Dependencies
@@ -131,6 +149,7 @@ Setup (T001-T002)
 - **US2 (P2)**: Sau US1 vì card, board page và membership base là nơi cộng tác/assign/comment diễn ra.
 - **US3 (P3)**: Sau US1 và US2 để ghi nhận đầy đủ card/column changes, assignment và comments theo FR-008.
 - **Polish**: Sau các story muốn phát hành; hoàn thiện a11y/performance/docs và audit coverage `vi`/`en`.
+- **US5 (P2)**: Sau Foundation, US1, US3 và Polish; dùng auth/session, board list, create-board transaction và activity triggers hiện có. T033/T034 session work có thể triển khai song song với T035 migration; T036 phụ thuộc T035; T037 phụ thuộc T034/T036; T038 chốt sau UI/API.
 
 ### Parallel Opportunities
 
@@ -140,6 +159,7 @@ Setup (T001-T002)
 - **US2**: T019, T020 và T021 tách migration/route files nên có thể song song sau US1; T022 phụ thuộc T019; T024 phụ thuộc T021/T022.
 - **US3**: T025 (ghi log) và T026 (đọc log/API) có thể làm song song vì tách migration/write và query/read; T027 cần cả hai.
 - **Polish**: T028 và T029 có thể làm song song trên phần query/performance và accessibility/style riêng; T030 tổng hợp sau implementation.
+- **US5**: T033 (auth route guards), T034 (logout UI) và T035 (demo-board transaction) sửa các file riêng nên có thể làm song song; T036 cần T035; T037 cần T034/T036; T038 kiểm tra hướng dẫn sau khi luồng hoàn tất.
 
 ### Parallel Example: US1
 
@@ -185,6 +205,22 @@ Sau khi T025 và T026 hoàn tất:
 - T027: activity feed UI
 ```
 
+### Parallel Example: US5
+
+```text
+Sau khi các phase trước hoàn tất:
+- T033: redirect người đã login khỏi auth pages
+- T034: logout action/control trong workspace
+- T035: schema và transaction tạo demo board
+
+Sau khi T035:
+- T036: authenticated demo-board API
+
+Sau T034 và T036:
+- T037: localized demo-data button trên board list
+- T038: quickstart verification scenario
+```
+
 ## Implementation Strategy
 
 ### MVP First
@@ -201,6 +237,7 @@ Sau khi T025 và T026 hoàn tất:
 3. US2 → thêm member, assign và comment.
 4. US3 → ghi/đọc Activity Log cho mutation của US1/US2.
 5. Polish → a11y, hiệu năng 500-card và quickstart khớp sản phẩm.
+6. US5 → hoàn thiện auth session lifecycle và cung cấp demo board idempotent.
 
 ## Notes
 

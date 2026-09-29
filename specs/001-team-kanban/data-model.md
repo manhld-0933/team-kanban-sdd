@@ -39,9 +39,10 @@ Profile chỉ đọc được bởi thành viên cùng board hiện tại hoặc
 | `id` | UUID primary key. |
 | `name` | Bắt buộc, trim whitespace, độ dài giới hạn ở boundary. |
 | `created_by` | FK tới Auth user đã tạo; không đổi sau tạo. |
+| `is_demo` | Boolean, mặc định `false`; đánh dấu demo board do hệ thống tạo, tối đa một board `is_demo=true` cho mỗi owner. |
 | `created_at`, `updated_at` | UTC; cập nhật khi board metadata đổi. |
 
-Board phải được tạo cùng membership role `owner` và ba column mặc định To Do, In Progress, Done trong một transaction. Board có nhiều membership; chỉ một owner.
+Board phải được tạo cùng membership role `owner` và ba column mặc định To Do, In Progress, Done trong một transaction. Board có nhiều membership; chỉ một owner. Demo board dùng owner hiện tại làm creator/owner, có card mẫu và activity được ghi bằng activity triggers; unique partial index bảo đảm mỗi owner chỉ có một demo board.
 
 ### BoardMember
 

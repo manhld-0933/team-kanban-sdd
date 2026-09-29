@@ -6,7 +6,7 @@
 
 ## Summary
 
-Xây dựng web application Kanban cho nhóm nhỏ với đăng ký/đăng nhập email-mật khẩu, giao diện tiếng Việt/English, board có vai trò chủ sở hữu/thành viên, column và card, kéo thả cập nhật tức thì có rollback, assign, comment và Activity Log. Dùng Next.js App Router + TypeScript cho cả giao diện và backend-for-frontend, Supabase Auth cho danh tính và Supabase Postgres cho dữ liệu. Mọi dữ liệu board được bảo vệ bằng Row Level Security (RLS); các thao tác nhiều bản ghi cần tính nguyên tử, như tạo board mặc định hay di chuyển card và ghi log, thực hiện trong transaction ở Postgres.
+Xây dựng web application Kanban cho nhóm nhỏ với đăng ký/đăng nhập email-mật khẩu, giao diện tiếng Việt/English, board có vai trò chủ sở hữu/thành viên, column và card, kéo thả cập nhật tức thì có rollback, assign, comment và Activity Log. Hoàn thiện session lifecycle để auth page redirect đúng theo trạng thái đăng nhập, có logout từ workspace và hỗ trợ tạo một demo board idempotent với cards/membership/activity. Dùng Next.js App Router + TypeScript cho cả giao diện và backend-for-frontend, Supabase Auth cho danh tính và Supabase Postgres cho dữ liệu. Mọi dữ liệu board được bảo vệ bằng Row Level Security (RLS); các thao tác nhiều bản ghi cần tính nguyên tử, như tạo board mặc định, demo board hay di chuyển card và ghi log, thực hiện trong transaction ở Postgres.
 
 ## Technical Context
 
@@ -26,7 +26,7 @@ Xây dựng web application Kanban cho nhóm nhỏ với đăng ký/đăng nhậ
 
 **Constraints**: Phân quyền bắt buộc ở server/database; dùng Supabase publishable key ở browser cùng RLS/grants tối thiểu; không dùng service-role/secret key ở browser. Bật RLS trên các bảng exposed; mọi truy vấn giới hạn theo board membership và role. Ghi activity cùng transaction với thay đổi tương ứng. Không cache dữ liệu board cá nhân hóa hoặc response đang set auth cookies dùng chung giữa người dùng. Ưu tiên Server Components cho render/đọc dữ liệu và giới hạn Client Components ở board tương tác. UI dùng dictionaries có type-safe keys cho `vi` và `en`; locale mặc định `vi`, lưu trong cookie preference và khởi tạo ở root layout để SSR render đúng ngôn ngữ. Dịch system-generated strings, không dịch nội dung do người dùng nhập.
 
-**Scale/Scope**: Nhóm tối đa khoảng 10 thành viên/board; kiểm thử trải nghiệm tới 500 card/board. MVP gồm auth, board, column, card, assign đơn, comment và activity log; không gồm email invitation, xác minh email, khôi phục mật khẩu, realtime push hay mobile chuyên biệt.
+**Scale/Scope**: Nhóm tối đa khoảng 10 thành viên/board; kiểm thử trải nghiệm tới 500 card/board. MVP gồm auth, board, column, card, assign đơn, comment, activity log, logout/session routing và một demo board cho mỗi owner; không gồm email invitation, xác minh email, khôi phục mật khẩu, realtime push hay mobile chuyên biệt.
 
 ## Constitution Check
 
