@@ -8,6 +8,8 @@ export type ApiErrorCode =
   | "CONFLICT"
   | "VERSION_CONFLICT"
   | "COLUMN_NOT_EMPTY"
+  | "MEMBER_ASSIGNED"
+  | "MEMBER_ADD_FAILED"
   | "INTERNAL_ERROR";
 
 export function apiSuccess<T>(data: T, status = 200) {

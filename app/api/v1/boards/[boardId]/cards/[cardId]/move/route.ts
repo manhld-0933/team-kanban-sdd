@@ -1,5 +1,6 @@
 import { getAuthenticatedClient } from "@/lib/auth/require-user";
 import { getCardById } from "@/lib/cards/queries";
+import { getBoardDetail } from "@/lib/boards/queries";
 import { apiError, apiSuccess } from "@/lib/http/api-response";
 import { routeError } from "@/lib/http/route-errors";
 import { getBoardRole } from "@/lib/permissions/board";
@@ -36,7 +37,9 @@ export async function POST(request: Request, { params }: RouteContext) {
       p_expected_version: input.expectedVersion,
     });
     if (error) throw error;
-    return apiSuccess(data);
+    const board = await getBoardDetail(supabase, boardId, role);
+    if (!board) return apiError("NOT_FOUND", "Board not found.", 404);
+    return apiSuccess({ ...(data as Record<string, unknown>), board });
   } catch (error) {
     if ((error as { message?: string })?.message?.includes("VERSION_CONFLICT")) {
       try {

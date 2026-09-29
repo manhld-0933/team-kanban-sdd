@@ -39,6 +39,7 @@ export function KanbanBoard({ initialBoard }: { initialBoard: BoardDetail }) {
   async function refreshBoard() {
     const fresh = await request(base, "GET") as BoardDetail;
     setBoard(fresh);
+    window.dispatchEvent(new Event("kanban:activity"));
   }
 
   async function mutate(path: string, method: string, body?: unknown) {
@@ -77,12 +78,13 @@ export function KanbanBoard({ initialBoard }: { initialBoard: BoardDetail }) {
     setPending(true);
     setError("");
     try {
-      await request(`${base}/cards/${cardId}/move`, "POST", {
+      const result = await request(`${base}/cards/${cardId}/move`, "POST", {
         toColumnId: columnId,
         toPosition: targetIndex,
         expectedVersion: card.version,
-      });
-      await refreshBoard();
+      }) as { board: BoardDetail };
+      setBoard(result.board);
+      window.dispatchEvent(new Event("kanban:activity"));
     } catch (moveError) {
       setBoard(sourceBoard);
       const isConflict = moveError instanceof Error && moveError.message === "VERSION_CONFLICT";
@@ -105,16 +107,18 @@ export function KanbanBoard({ initialBoard }: { initialBoard: BoardDetail }) {
   return (
     <div className="kanban-region" aria-busy={pending}>
       {error ? <p className="form-message error board-error" role="alert">{error}</p> : null}
-      {pending ? <p className="pending-status" role="status">{t("cardMovePending")}</p> : null}
+      {pending ? <p className="pending-status" role="status">{t("saving")}</p> : null}
       <DragDropContext onDragEnd={(result) => { void onDragEnd(result); }}>
         <div className="kanban-columns">
           {orderedColumns.map((column, index) => (
             <Column
               key={column.id}
               column={column}
+              boardId={board.id}
+              members={initialBoard.members}
               columnIndex={index}
               columns={orderedColumns}
-              role={board.role}
+              role={initialBoard.role}
               disabled={pending}
               onCardCreate={(columnId, input) => mutate(`${base}/cards`, "POST", { ...input, columnId })}
               onCardSave={(cardId, input) => mutate(`${base}/cards/${cardId}`, "PATCH", input)}
@@ -123,6 +127,7 @@ export function KanbanBoard({ initialBoard }: { initialBoard: BoardDetail }) {
               onColumnSave={(columnId, input) => mutate(`${base}/columns/${columnId}`, "PATCH", input)}
               onColumnDelete={(columnId, moveCardsToColumnId) => mutate(`${base}/columns/${columnId}`, "DELETE", { moveCardsToColumnId })}
               onColumnMove={(columnId, position) => mutate(`${base}/columns/${columnId}`, "PATCH", { position })}
+              onBoardRefresh={refreshBoard}
             />
           ))}
         </div>

@@ -19,7 +19,11 @@ export function routeError(error: unknown) {
       ? "COLUMN_NOT_EMPTY"
       : message.includes("NOT_FOUND")
         ? "NOT_FOUND"
-        : message.includes("INVALID_")
+        : message.includes("MEMBER_ASSIGNED")
+          ? "MEMBER_ASSIGNED"
+          : message.includes("MEMBER_ADD_FAILED")
+            ? "MEMBER_ADD_FAILED"
+            : message.includes("INVALID_")
           ? "VALIDATION_ERROR"
           : null;
 
@@ -29,11 +33,20 @@ export function routeError(error: unknown) {
   if (errorCode === "COLUMN_NOT_EMPTY") {
     return apiError(errorCode, "Move the cards before deleting this column.", 409);
   }
+  if (errorCode === "MEMBER_ASSIGNED") {
+    return apiError("MEMBER_ASSIGNED", "Unassign this member from their cards before removing them.", 409);
+  }
+  if (errorCode === "MEMBER_ADD_FAILED") {
+    return apiError("MEMBER_ADD_FAILED", "Could not add this account to the board.", 422);
+  }
   if (errorCode === "NOT_FOUND" || databaseError?.code === "P0002") {
     return apiError("NOT_FOUND", "The requested resource was not found.", 404);
   }
   if (databaseError?.code === "42501") {
     return apiError("FORBIDDEN", "You do not have permission to perform this action.", 403);
+  }
+  if (databaseError?.code === "23503") {
+    return apiError("VALIDATION_ERROR", "A referenced user or resource is no longer available.", 422);
   }
   if (errorCode === "VALIDATION_ERROR" || databaseError?.code === "22023") {
     return apiError("VALIDATION_ERROR", "The request contains invalid data.", 422);

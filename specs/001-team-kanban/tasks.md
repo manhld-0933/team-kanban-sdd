@@ -72,12 +72,12 @@
 
 ### Implementation
 
-- [ ] T019 [P] [US2] Tạo `supabase/migrations/202609270004_comments.sql` cho bảng comments; giữ rule “Bắt buộc sau trim, plain text, có giới hạn độ dài ở boundary”, author phải là member tại thời điểm tạo; bật RLS và grants tối thiểu, chỉ member cùng board được đọc/tạo.
-- [ ] T020 [P] [US2] (depends on T009) Tạo `GET/POST /api/v1/boards/[boardId]/members` trong `app/api/v1/boards/[boardId]/members/route.ts` và remove handler `app/api/v1/boards/[boardId]/members/[userId]/route.ts`; owner mới được thêm/xóa, chỉ thêm account đã đăng ký, không cho gỡ owner, trả `409` nếu member còn là assignee để owner xử lý trước.
-- [ ] T021 [P] [US2] (depends on T009) Tạo assign/unassign handler `app/api/v1/boards/[boardId]/cards/[cardId]/assignee/route.ts`; mọi owner/member của board được gán bất kỳ owner/member hiện tại nào cùng board hoặc gửi `userId: null` để bỏ gán; thay đổi và activity entry phải nguyên tử.
-- [ ] T022 [US2] (depends on T019) Tạo comment queries và handlers trong `lib/comments/queries.ts` và `app/api/v1/boards/[boardId]/cards/[cardId]/comments/route.ts`; owner/member đọc/tạo, body bắt buộc sau trim, plain text có giới hạn độ dài ở boundary, lưu author/time và ghi activity nguyên tử.
-- [ ] T023 [US2] (depends on T020, T031) Tạo UI quản lý thành viên song ngữ (thêm account đã đăng ký, xác nhận gỡ và thông báo khi account còn assignee) trong `components/board/member-management.tsx`.
-- [ ] T024 [US2] (depends on T021, T022, T031) Tạo card detail UI song ngữ gồm assign picker cho mọi member, bỏ gán và comments có author/time trong `components/board/card-details.tsx`; localized errors/labels, giữ board state nhất quán khi mutation thất bại và không dịch user-generated comments.
+- [X] T019 [P] [US2] Tạo `supabase/migrations/202609270004_comments.sql` cho bảng comments; giữ rule “Bắt buộc sau trim, plain text, có giới hạn độ dài ở boundary”, author phải là member tại thời điểm tạo; bật RLS và grants tối thiểu, chỉ member cùng board được đọc/tạo.
+- [X] T020 [P] [US2] (depends on T009) Tạo `GET/POST /api/v1/boards/[boardId]/members` trong `app/api/v1/boards/[boardId]/members/route.ts` và remove handler `app/api/v1/boards/[boardId]/members/[userId]/route.ts`; owner mới được thêm/xóa, chỉ thêm account đã đăng ký, không cho gỡ owner, trả `409` nếu member còn là assignee để owner xử lý trước.
+- [X] T021 [P] [US2] (depends on T009) Tạo assign/unassign handler `app/api/v1/boards/[boardId]/cards/[cardId]/assignee/route.ts`; mọi owner/member của board được gán bất kỳ owner/member hiện tại nào cùng board hoặc gửi `userId: null` để bỏ gán; thay đổi và activity entry phải nguyên tử.
+- [X] T022 [US2] (depends on T019) Tạo comment queries và handlers trong `lib/comments/queries.ts` và `app/api/v1/boards/[boardId]/cards/[cardId]/comments/route.ts`; owner/member đọc/tạo, body bắt buộc sau trim, plain text có giới hạn độ dài ở boundary, lưu author/time và ghi activity nguyên tử.
+- [X] T023 [US2] (depends on T020, T031) Tạo UI quản lý thành viên song ngữ (thêm account đã đăng ký, xác nhận gỡ và thông báo khi account còn assignee) trong `components/board/member-management.tsx`.
+- [X] T024 [US2] (depends on T021, T022, T031) Tạo card detail UI song ngữ gồm assign picker cho mọi member, bỏ gán và comments có author/time trong `components/board/card-details.tsx`; localized errors/labels, giữ board state nhất quán khi mutation thất bại và không dịch user-generated comments.
 
 **Checkpoint**: US2 cộng tác được trên board US1; role owner/member được thực thi cả ở server và RLS.
 
@@ -93,9 +93,9 @@
 
 ### Implementation
 
-- [ ] T025 [P] [US3] (depends on T009, T012-T024) Tạo `supabase/migrations/202609270005_activity_triggers.sql` để ghi append-only activity cho card create/update/delete/move (phân biệt action), assignee changes, column changes và comment creation; actor lấy từ identity đã xác minh, không lưu password/session/comment trọn bộ; ghi trong transaction cùng mutation và chỉ member được đọc log.
-- [ ] T026 [P] [US3] (depends on T009) Tạo activity query với cursor/limit trong `lib/activity/queries.ts` và `GET /api/v1/boards/[boardId]/activity/route.ts`; sắp xếp mới nhất trước, giới hạn page size, trả DTO actor/action/entity/time tối thiểu và từ chối non-member.
-- [ ] T027 [US3] (depends on T025, T026, T031) Tạo activity feed song ngữ trong `components/board/activity-feed.tsx` và tích hợp vào `app/(workspace)/boards/[boardId]/page.tsx`; dịch action labels, empty/loading/error states, pagination/cursor và chỉ trình bày dữ liệu người xem được phép đọc.
+- [X] T025 [P] [US3] (depends on T009, T012-T024) Tạo `supabase/migrations/202609270005_activity_triggers.sql` để ghi append-only activity cho board/member, card create/update/delete/move (phân biệt action), assignee changes, column changes và comment creation; actor lấy từ identity đã xác minh, không lưu password/session/comment trọn bộ; ghi trong transaction cùng mutation và chỉ member được đọc log. Migrations `202609270006_activity_log_cascades.sql` và `202609270007_activity_move_coalescing.sql` giữ immutability cho FK cleanup và gộp reorder thành activity của card được di chuyển.
+- [X] T026 [P] [US3] (depends on T009) Tạo activity query với cursor/limit trong `lib/activity/queries.ts` và `GET /api/v1/boards/[boardId]/activity/route.ts`; sắp xếp mới nhất trước, giới hạn page size, trả DTO actor/action/entity/time tối thiểu và từ chối non-member.
+- [X] T027 [US3] (depends on T025, T026, T031) Tạo activity feed song ngữ trong `components/board/activity-feed.tsx` và tích hợp vào `app/(workspace)/boards/[boardId]/page.tsx`; dịch action labels, empty/loading/error states, pagination/cursor và chỉ trình bày dữ liệu người xem được phép đọc.
 
 **Checkpoint**: Log bao phủ toàn bộ sự kiện FR-008, bất biến với người dùng thường và không rò rỉ dữ liệu nhạy cảm.
 
@@ -105,10 +105,10 @@
 
 **Purpose**: Hoàn thiện khả năng truy cập, hiệu năng và hướng dẫn chạy/đánh giá sau khi các story đã tích hợp.
 
-- [ ] T028 [P] Rà soát board query và render trong `lib/boards/queries.ts`, `lib/cards/queries.ts` và `components/board/board-view.tsx` để chỉ lấy field cần thiết, giữ ordering ổn định và đạt scope 10 members/500 cards theo SC-005 mà không cache chéo user.
-- [ ] T029 [P] Hoàn thiện focus order, labels cho công nghệ hỗ trợ bằng cả hai ngôn ngữ, contrast và trạng thái không chỉ dùng màu trong `components/board/kanban-board.tsx`, `components/board/card-move-controls.tsx` và `app/globals.css` theo FR-013, FR-017 và constitution Principle IV.
-- [ ] T030 Cập nhật `specs/001-team-kanban/quickstart.md` để khớp migrations, env vars, signup, locale switching, role checks, drag/drop rollback, activity scenarios và cách ghi nhận SC-002/SC-005 sau implementation.
-- [ ] T032 [P] Rà soát message dictionary `lib/i18n/messages.ts` và toàn bộ UI để không còn system-generated text hard-coded, mọi message key có đủ `vi`/`en`, locale switch/persistence hoạt động trên từng story và user-generated content giữ nguyên.
+- [X] T028 [P] Rà soát board query và render trong `lib/boards/queries.ts`, `lib/cards/queries.ts` và `components/board/board-view.tsx` để chỉ lấy field cần thiết, giữ ordering ổn định, tránh activity fan-out khi reorder và đáp ứng scope 10 members/500 cards theo SC-005 mà không cache chéo user.
+- [X] T029 [P] Hoàn thiện focus order, labels cho công nghệ hỗ trợ bằng cả hai ngôn ngữ, contrast và trạng thái không chỉ dùng màu trong `components/board/kanban-board.tsx`, `components/board/card-move-controls.tsx` và `app/globals.css` theo FR-013, FR-017 và constitution Principle IV.
+- [X] T030 Cập nhật `specs/001-team-kanban/quickstart.md` để khớp local Supabase incremental migrations, env vars, signup, locale switching, role checks, member assignment/comments, drag/drop rollback, activity scenarios và cách ghi nhận SC-002/SC-005 sau implementation.
+- [X] T032 [P] Rà soát message dictionary `lib/i18n/messages.ts` và toàn bộ UI để không còn system-generated text hard-coded, mọi message key có đủ `vi`/`en`, locale switch/persistence hoạt động trên từng story, status mặc định được dịch qua system key rõ ràng và user-generated content giữ nguyên. Migration `202609270008_default_column_labels.sql` clear key nếu owner rename column.
 
 ---
 

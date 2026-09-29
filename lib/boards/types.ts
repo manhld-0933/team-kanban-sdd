@@ -5,6 +5,12 @@ export type BoardSummary = {
   role: "owner" | "member";
 };
 
+export type BoardMember = {
+  userId: string;
+  email: string;
+  role: "owner" | "member";
+};
+
 export type CardRecord = {
   id: string;
   board_id: string;
@@ -23,6 +29,7 @@ export type ColumnRecord = {
   board_id: string;
   name: string;
   position: number;
+  default_status_key: "to_do" | "in_progress" | "done" | null;
   cards: CardRecord[];
 };
 
@@ -32,5 +39,6 @@ export type BoardDetail = {
   createdAt: string;
   updatedAt: string;
   role: "owner" | "member";
+  members: BoardMember[];
   columns: ColumnRecord[];
 };

@@ -4,10 +4,13 @@ import { useState } from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import { useLocale } from "@/components/i18n/locale-provider";
 import { CardMoveControls } from "@/components/board/card-move-controls";
-import type { CardRecord } from "@/lib/boards/types";
+import { CardDetails } from "@/components/board/card-details";
+import type { BoardMember, CardRecord } from "@/lib/boards/types";
 
 export function Card({
   card,
+  boardId,
+  members,
   index,
   columnIndex,
   columnCount,
@@ -18,8 +21,11 @@ export function Card({
   onMoveDown,
   onMoveLeft,
   onMoveRight,
+  onBoardRefresh,
 }: {
   card: CardRecord;
+  boardId: string;
+  members: BoardMember[];
   index: number;
   columnIndex: number;
   columnCount: number;
@@ -30,6 +36,7 @@ export function Card({
   onMoveDown: () => void;
   onMoveLeft: () => void;
   onMoveRight: () => void;
+  onBoardRefresh: () => Promise<void>;
 }) {
   const { t } = useLocale();
   const [editing, setEditing] = useState(false);
@@ -57,8 +64,19 @@ export function Card({
     }
   }
 
+  async function remove() {
+    setError("");
+    try { await onDelete(); }
+    catch (deleteError) { setError(deleteError instanceof Error ? deleteError.message : t("genericError")); }
+  }
+
   return (
-    <Draggable draggableId={card.id} index={index} isDragDisabled={disabled || editing}>
+    <Draggable
+      draggableId={card.id}
+      index={index}
+      isDragDisabled={disabled || editing}
+      disableInteractiveElementBlocking
+    >
       {(provided, snapshot) => (
         <article
           ref={provided.innerRef}
@@ -93,7 +111,7 @@ export function Card({
               <div className="card-footer">
                 <div className="card-actions">
                   <button type="button" onClick={() => setEditing(true)} disabled={disabled}>{t("cardEdit")}</button>
-                  <button type="button" onClick={() => { if (window.confirm(t("cardDeleteConfirm"))) void onDelete(); }} disabled={disabled}>{t("cardDelete")}</button>
+                  <button type="button" onClick={() => { if (window.confirm(t("cardDeleteConfirm"))) void remove(); }} disabled={disabled}>{t("cardDelete")}</button>
                 </div>
                 <CardMoveControls
                   columnIndex={columnIndex}
@@ -105,6 +123,11 @@ export function Card({
                   onMoveRight={onMoveRight}
                 />
               </div>
+              {card.assignee_user_id ? (
+                <p className="card-assignee">{t("assigneeTitle")}: {members.find((member) => member.userId === card.assignee_user_id)?.email ?? ""}</p>
+              ) : null}
+              <div className="card-detail-action"><CardDetails boardId={boardId} card={card} members={members} onUpdated={onBoardRefresh} /></div>
+              {error ? <p className="form-message error" role="alert">{error}</p> : null}
             </>
           )}
         </article>

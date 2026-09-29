@@ -5,10 +5,12 @@ import { Droppable } from "@hello-pangea/dnd";
 import { Card } from "@/components/board/card";
 import { CardCreateForm } from "@/components/board/card-create-form";
 import { useLocale } from "@/components/i18n/locale-provider";
-import type { ColumnRecord } from "@/lib/boards/types";
+import type { BoardMember, ColumnRecord } from "@/lib/boards/types";
 
 export function Column({
   column,
+  boardId,
+  members,
   columnIndex,
   columns,
   role,
@@ -20,8 +22,11 @@ export function Column({
   onColumnSave,
   onColumnDelete,
   onColumnMove,
+  onBoardRefresh,
 }: {
   column: ColumnRecord;
+  boardId: string;
+  members: BoardMember[];
   columnIndex: number;
   columns: ColumnRecord[];
   role: "owner" | "member";
@@ -33,17 +38,23 @@ export function Column({
   onColumnSave: (columnId: string, input: { name?: string; position?: number }) => Promise<void>;
   onColumnDelete: (columnId: string, moveCardsToColumnId: string | null) => Promise<void>;
   onColumnMove: (columnId: string, position: number) => Promise<void>;
+  onBoardRefresh: () => Promise<void>;
 }) {
   const { t } = useLocale();
-  const displayColumnName = column.name === "To Do" ? t("statusToDo")
-    : column.name === "In Progress" ? t("statusInProgress")
-      : column.name === "Done" ? t("statusDone") : column.name;
+  const displayName = (item: ColumnRecord) => item.default_status_key === "to_do" ? t("statusToDo")
+    : item.default_status_key === "in_progress" ? t("statusInProgress")
+      : item.default_status_key === "done" ? t("statusDone") : item.name;
+  const displayColumnName = displayName(column);
   const isOwner = role === "owner";
   const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState(column.name);
   const [deleteTarget, setDeleteTarget] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+
+  function moveColumn(position: number) {
+    void onColumnMove(column.id, position).catch(() => undefined);
+  }
 
   async function saveName(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -95,8 +106,8 @@ export function Column({
         </div>
         {isOwner ? (
           <div className="column-toolbar">
-            <button className="icon-button" type="button" aria-label={t("columnMoveUp")} title={t("columnMoveUp")} disabled={pending || columnIndex === 0} onClick={() => void onColumnMove(column.id, columnIndex - 1)}>←</button>
-            <button className="icon-button" type="button" aria-label={t("columnMoveDown")} title={t("columnMoveDown")} disabled={pending || columnIndex === columns.length - 1} onClick={() => void onColumnMove(column.id, columnIndex + 1)}>→</button>
+            <button className="icon-button" type="button" aria-label={t("columnMoveUp")} title={t("columnMoveUp")} disabled={pending || columnIndex === 0} onClick={() => moveColumn(columnIndex - 1)}>←</button>
+            <button className="icon-button" type="button" aria-label={t("columnMoveDown")} title={t("columnMoveDown")} disabled={pending || columnIndex === columns.length - 1} onClick={() => moveColumn(columnIndex + 1)}>→</button>
             {!renaming ? <button className="icon-button" type="button" aria-label={t("columnRename")} title={t("columnRename")} disabled={pending} onClick={() => { setName(column.name); setRenaming(true); }}>✎</button> : null}
           </div>
         ) : null}
@@ -107,7 +118,7 @@ export function Column({
           <label className="sr-only" htmlFor={`move-target-${column.id}`}>{t("columnMoveCardsTo")}</label>
           <select id={`move-target-${column.id}`} value={deleteTarget} onChange={(event) => setDeleteTarget(event.target.value)}>
             <option value="">{t("columnMoveCardsTo")}</option>
-            {columns.filter((item) => item.id !== column.id).map((item) => <option value={item.id} key={item.id}>{item.name === "To Do" ? t("statusToDo") : item.name === "In Progress" ? t("statusInProgress") : item.name === "Done" ? t("statusDone") : item.name}</option>)}
+            {columns.filter((item) => item.id !== column.id).map((item) => <option value={item.id} key={item.id}>{displayName(item)}</option>)}
           </select>
           <button className="icon-button danger" type="button" aria-label={t("columnDelete")} title={t("columnDelete")} disabled={pending || !deleteTarget} onClick={() => void deleteColumn()}>×</button>
         </div>
@@ -131,6 +142,8 @@ export function Column({
               <Card
                 key={card.id}
                 card={card}
+                boardId={boardId}
+                members={members}
                 index={index}
                 columnIndex={columnIndex}
                 columnCount={columns.length}
@@ -141,6 +154,7 @@ export function Column({
                 onMoveDown={() => { void onCardMove(card.id, column.id, Math.min(index + 1, column.cards.length - 1)); }}
                 onMoveLeft={() => { const target = columns[columnIndex - 1]; if (target) void onCardMove(card.id, target.id, target.cards.length); }}
                 onMoveRight={() => { const target = columns[columnIndex + 1]; if (target) void onCardMove(card.id, target.id, target.cards.length); }}
+                onBoardRefresh={onBoardRefresh}
               />
             ))}
             {provided.placeholder}

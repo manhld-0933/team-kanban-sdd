@@ -1,5 +1,32 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { BoardDetail, BoardSummary, CardRecord } from "@/lib/boards/types";
+import type { BoardDetail, BoardMember, BoardSummary, CardRecord, ColumnRecord } from "@/lib/boards/types";
+
+async function mapBoardMembers(supabase: SupabaseClient, rows: { user_id: unknown; role: unknown }[]) {
+  if (!rows.length) return [];
+  const { data: profiles, error } = await supabase.from("user_profiles")
+    .select("id, email")
+    .in("id", rows.map((item) => item.user_id as string));
+  if (error) throw error;
+  const emails = new Map((profiles ?? []).map((profile) => [profile.id as string, profile.email as string]));
+  return rows.map((item) => ({
+    userId: item.user_id as string,
+    role: item.role as "owner" | "member",
+    email: emails.get(item.user_id as string) ?? "",
+  }));
+}
+
+export async function getBoardMembers(
+  supabase: SupabaseClient,
+  boardId: string,
+): Promise<BoardMember[]> {
+  const { data: rows, error } = await supabase
+    .from("board_members")
+    .select("user_id, role")
+    .eq("board_id", boardId)
+    .order("user_id", { ascending: true });
+  if (error) throw error;
+  return mapBoardMembers(supabase, rows ?? []);
+}
 
 export async function listBoards(
   supabase: SupabaseClient,
@@ -45,22 +72,30 @@ export async function getBoardDetail(
   if (boardError) throw boardError;
   if (!board) return null;
 
-  const { data: columns, error: columnsError } = await supabase
+  const [columnsResult, cardsResult, membersResult] = await Promise.all([
+    supabase
     .from("columns")
-    .select("id, board_id, name, position")
+    .select("id, board_id, name, position, default_status_key")
     .eq("board_id", boardId)
-    .order("position", { ascending: true });
-  if (columnsError) throw columnsError;
-
-  const { data: cards, error: cardsError } = await supabase
+    .order("position", { ascending: true }),
+    supabase
     .from("cards")
     .select("id, board_id, column_id, title, description, assignee_user_id, position, version, created_at, updated_at")
     .eq("board_id", boardId)
-    .order("position", { ascending: true });
-  if (cardsError) throw cardsError;
+    .order("position", { ascending: true }),
+    supabase
+      .from("board_members")
+      .select("user_id, role")
+      .eq("board_id", boardId)
+      .order("user_id", { ascending: true }),
+  ]);
+  if (columnsResult.error) throw columnsResult.error;
+  if (cardsResult.error) throw cardsResult.error;
+  if (membersResult.error) throw membersResult.error;
+  const members = await mapBoardMembers(supabase, membersResult.data ?? []);
 
   const cardsByColumn = new Map<string, CardRecord[]>();
-  for (const card of (cards ?? []) as CardRecord[]) {
+  for (const card of (cardsResult.data ?? []) as CardRecord[]) {
     const columnCards = cardsByColumn.get(card.column_id) ?? [];
     columnCards.push(card);
     cardsByColumn.set(card.column_id, columnCards);
@@ -72,11 +107,13 @@ export async function getBoardDetail(
     createdAt: board.created_at as string,
     updatedAt: board.updated_at as string,
     role,
-    columns: (columns ?? []).map((column) => ({
+    members,
+    columns: (columnsResult.data ?? []).map((column) => ({
       id: column.id as string,
       board_id: column.board_id as string,
       name: column.name as string,
       position: column.position as number,
+      default_status_key: column.default_status_key as ColumnRecord["default_status_key"],
       cards: cardsByColumn.get(column.id) ?? [],
     })),
   };

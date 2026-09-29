@@ -36,7 +36,7 @@ Owner tạo board. Body: `{ "name": "Team Alpha" }`. `201 { "data": { "id", "nam
 
 ### `GET /api/v1/boards/{boardId}`
 
-Member đọc board, columns, cards và assignee summary. `200 { "data": { "board", "columns": [{ "id", "name", "position", "cards": [...] }] } }`. Board không thuộc quyền truy cập trả `404`.
+Member đọc board, columns, cards, member summaries và assignee summary. `200 { "data": { "id", "name", "role", "members": [...], "columns": [{ "id", "name", "position", "cards": [...] }] } }`. Board không thuộc quyền truy cập trả `404`.
 
 ### `PATCH /api/v1/boards/{boardId}`
 
@@ -50,11 +50,11 @@ Member xem danh sách thành viên và role. `200 { "data": [...] }`.
 
 ### `POST /api/v1/boards/{boardId}/members`
 
-Chỉ owner thêm tài khoản đã tồn tại. Body `{ "email": "person@example.com" }`; `201 { "data": { "userId", "email", "role": "member" } }`. Email không có account trả lỗi chung không tiết lộ đăng ký; flow invitation ngoài MVP.
+Chỉ owner thêm tài khoản đã tồn tại. Body `{ "email": "person@example.com" }`; `201 { "data": { "userId", "email", "role": "member" } }`. Email chưa đăng ký và member đã có trên board trả cùng một lỗi chung; flow invitation ngoài MVP.
 
 ### `DELETE /api/v1/boards/{boardId}/members/{userId}`
 
-Chỉ owner xóa member. Nếu member còn là assignee, yêu cầu unassign hoặc xử lý trong transaction theo lựa chọn UX ở implementation. `204` khi thành công. Owner không thể tự xóa membership owner.
+Chỉ owner xóa member. Nếu member còn là assignee, trả `409 MEMBER_ASSIGNED` để owner unassign trước. `204` khi thành công. Owner không thể tự xóa membership owner.
 
 ## Columns
 
@@ -86,11 +86,11 @@ Member xóa card và ghi activity tương ứng nguyên tử. Trả `204`.
 
 ### `POST /api/v1/boards/{boardId}/cards/{cardId}/move`
 
-Member di chuyển/reorder card. Body `{ "toColumnId": "uuid", "toPosition": 2, "expectedVersion": 4 }`. Server xác minh card/column cùng board và version, transaction cập nhật thứ tự + card + activity. `200 { "data": { "cardId", "columnId", "position", "version", "updatedAt" } }`. Trả `409 VERSION_CONFLICT` khi state đã đổi; client rollback trước khi refresh state.
+Member di chuyển/reorder card. Body `{ "toColumnId": "uuid", "toPosition": 2, "expectedVersion": 4 }`. Server xác minh card/column cùng board và version, transaction cập nhật thứ tự + card + activity. `200 { "data": { "cardId", "columnId", "position", "version", "updatedAt", "board" } }`; `board` là snapshot mới nhất để client đồng bộ sau optimistic move. Trả `409 VERSION_CONFLICT` cùng card state mới nhất khi state đã đổi; client rollback rồi refresh board.
 
 ### `PUT /api/v1/boards/{boardId}/cards/{cardId}/assignee`
 
-Member gán người phụ trách. Body `{ "userId": "uuid" }`; user phải là member hiện tại cùng board. Trả card assignment summary. Dùng `{ "userId": null }` để bỏ gán. Ghi Activity Log trong cùng transaction.
+Member gán người phụ trách. Body `{ "userId": "uuid", "expectedVersion": 4 }`; user phải là member hiện tại cùng board. Trả card cùng assignee summary. Dùng `{ "userId": null, "expectedVersion": 4 }` để bỏ gán. Ghi Activity Log trong cùng transaction.
 
 ## Comments
 
@@ -100,13 +100,13 @@ Member đọc comments theo thời gian tăng dần hoặc cursor; DTO có `auth
 
 ### `POST /api/v1/boards/{boardId}/cards/{cardId}/comments`
 
-Member thêm comment. Body `{ "body": "..." }`; `201` trả comment DTO. Insert comment + activity là một transaction.
+Member thêm comment. Body `{ "body": "..." }`; body bắt buộc sau trim, plain text, tối đa 5000 ký tự; `201` trả comment DTO gồm author/time. Insert comment + activity là một transaction.
 
 ## Activity
 
 ### `GET /api/v1/boards/{boardId}/activity?cursor={cursor}&limit={limit}`
 
-Member đọc activity mới nhất trước, giới hạn page size; response `{ "data": [...], "nextCursor": "..." }`. Mọi entry gồm action, actor summary, entity summary và `createdAt`. Không có mutation endpoint cho Activity Log.
+Member đọc activity mới nhất trước, giới hạn page size từ 1 đến 50; response `{ "data": { "items": [...], "nextCursor": "..." } }`. Mọi entry gồm action, actor summary, entity summary và `createdAt`. Không có mutation endpoint cho Activity Log.
 
 ## Error codes chính
 

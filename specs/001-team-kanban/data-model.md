@@ -22,6 +22,16 @@
 
 Email verification/password recovery ngoài MVP theo spec. Dữ liệu nhạy cảm xác thực không được nhân đôi ở bảng app.
 
+### UserProfile (application projection)
+
+| Field | Rule |
+|---|---|
+| `id` | UUID, FK tới Auth user; không lưu credential. |
+| `email` | Đồng bộ từ `auth.users` để hiển thị assignee, comment author và activity actor. |
+| `updated_at` | UTC; cập nhật khi email Auth đổi. |
+
+Profile chỉ đọc được bởi thành viên cùng board hiện tại hoặc thành viên xuất hiện trong comment/activity lịch sử board đó. Bản ghi được đồng bộ bằng Auth trigger; client không có quyền ghi trực tiếp.
+
 ### Board
 
 | Field | Rule |
@@ -52,6 +62,7 @@ Composite primary key `(board_id, user_id)` ngăn thêm cùng user hai lần. Pa
 | `board_id` | FK Board; immutable. |
 | `name` | Bắt buộc sau trim. |
 | `position` | Số nguyên >= 0, thứ tự trong board. |
+| `default_status_key` | Nullable; chỉ dùng để dịch label của ba column hệ thống mặc định, tự clear khi owner đổi tên. |
 | `created_at`, `updated_at` | UTC. |
 
 Constraint unique `(board_id, id)` hỗ trợ FK composite từ Card. Owner quản lý columns. Column mặc định có position lần lượt 0, 1, 2. Khi xóa column còn card, owner phải chỉ định column đích hoặc xử lý card trước; không được xóa card âm thầm.
@@ -80,7 +91,7 @@ Một card thuộc đúng một board/column và có tối đa một assignee. T
 | `board_id`, `card_id` | FK card cùng board. |
 | `author_user_id` | FK Auth user và membership tại thời điểm tạo. |
 | `body` | Bắt buộc sau trim, plain text, có giới hạn độ dài. |
-| `created_at`, `updated_at` | UTC. |
+| `created_at` | UTC; comment là append-only trong MVP. |
 
 Member có quyền board tạo và đọc comments. Sửa/xóa comment không được yêu cầu trong spec; không đưa vào MVP nếu chưa được xác nhận.
 
@@ -103,6 +114,7 @@ Activity được ghi cùng transaction với hành động tương ứng. Thàn
 
 ```text
 Auth User 1 ── * BoardMember * ── 1 Board
+Auth User 1 ── 0..1 UserProfile
 Board 1 ── * Column
 Board 1 ── * Card
 Column 1 ── * Card

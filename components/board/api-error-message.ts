@@ -12,6 +12,8 @@ export async function apiErrorMessage(
     if (code === "NOT_FOUND") return translate("errorNotFound");
     if (code === "VERSION_CONFLICT") return translate("versionConflict");
     if (code === "COLUMN_NOT_EMPTY") return translate("columnNotEmpty");
+    if (code === "MEMBER_ASSIGNED") return translate("memberAssignedError");
+    if (code === "MEMBER_ADD_FAILED") return translate("memberAddFailed");
     if (code === "VALIDATION_ERROR") return translate("errorValidation");
   } catch {
     return translate("genericError");

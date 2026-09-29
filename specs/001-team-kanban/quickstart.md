@@ -5,28 +5,44 @@ Hướng dẫn smoke-test sau khi implementation hoàn tất. Đây là luồng 
 ## Prerequisites
 
 - Node.js đáp ứng yêu cầu phiên bản Next.js (20.9+), npm và repository.
-- Supabase project có Auth email/password và Postgres.
-- Migrations của feature đã được áp dụng, RLS/grants được bật và biến môi trường đã cấu hình.
+- Docker Desktop/Engine đang chạy và Supabase CLI (`npx supabase` dùng CLI theo project mà không cần cài global).
+- Supabase local có Auth email/password và Postgres; `supabase/config.toml` đặt `enable_confirmations = false` cho luồng MVP.
+- RLS/grants và mọi migration đang có đã được áp dụng.
 - Tạo hai tài khoản thử nghiệm bằng email/password: owner và member. Email confirmation tắt theo assumption MVP.
 
 ## Setup và chạy local
 
-1. Cài dependencies sau khi implementation đã thêm Supabase packages:
+1. Cài dependencies:
 
    ```bash
    npm install
    ```
 
-2. Tạo `.env.local` từ biến môi trường Supabase được cung cấp trong dashboard:
+2. Khởi động local Supabase và xem API URL cùng publishable key:
 
-   ```text
-   NEXT_PUBLIC_SUPABASE_URL=...
-   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=...
+   ```bash
+   npx supabase start
+   npx supabase status
    ```
 
-   Publishable key được phép ở browser khi grants/RLS đã cấu hình đúng. Không đặt secret/service-role key trong biến `NEXT_PUBLIC_*` hoặc gửi tới browser. Nếu migration/tooling yêu cầu service-role key, chỉ dùng trong môi trường server/tool riêng và không commit.
+   Tạo `.env.local` ở repo root bằng các giá trị `API_URL` và `PUBLISHABLE_KEY` CLI vừa in ra:
 
-3. Áp dụng các SQL migrations trong `supabase/migrations` lên project Supabase dev. Xác nhận mọi bảng exposed bật RLS, grants tối thiểu và policies được áp dụng.
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+   ```
+
+   Publishable key được phép ở browser khi grants/RLS đã cấu hình đúng. Không đặt secret/service-role key trong biến `NEXT_PUBLIC_*` hoặc gửi tới browser.
+
+3. Áp dụng migration đang chờ theo cách incremental, không xóa dữ liệu local:
+
+   ```bash
+   npx supabase migration list --local
+   npx supabase db push --local
+   npx supabase migration list --local
+   ```
+
+   `db push --local` áp dụng migration chưa chạy. Tránh `db reset` nếu cần giữ data local vì lệnh đó dựng lại database.
 
 4. Chạy app:
 
@@ -34,7 +50,7 @@ Hướng dẫn smoke-test sau khi implementation hoàn tất. Đây là luồng 
    npm run dev
    ```
 
-5. Mở `http://localhost:3000`.
+5. Mở `http://localhost:3000`. Studio local ở `http://127.0.0.1:54323`; tài khoản xem tại **Authentication → Users**.
 
 ## Scenario A — Signup/login và quyền board
 
@@ -63,9 +79,10 @@ Hướng dẫn smoke-test sau khi implementation hoàn tất. Đây là luồng 
 1. Member tạo card trong To Do; owner và member đều thấy card.
 2. Member gán owner làm assignee; xác nhận assignee hiển thị. Bỏ gán rồi gán member lại.
 3. Member thêm comment; xác nhận người viết và thời điểm hiển thị.
-4. Mở Activity Log; xác nhận card create, assignment changes và comment xuất hiện theo thứ tự mới nhất trước, actor/time chính xác.
+4. Thử gỡ member đang được assign; xác nhận API từ chối. Bỏ gán người đó khỏi các card rồi gỡ member thành công.
+5. Mở Activity Log; xác nhận card create/update/delete, move/reorder, assignment changes, comment, thay đổi column và member xuất hiện mới nhất trước, actor/time chính xác. Dùng “Tải thêm” để đọc trang cũ hơn.
 
-**Expected**: Chỉ member hiện tại của board được assign; comment và activity chỉ hiển thị với người có quyền board.
+**Expected**: Chỉ member hiện tại của board được assign; comment và activity chỉ hiển thị với thành viên hiện tại. Gỡ member có assignment bị từ chối để owner unassign trước.
 
 ## Scenario D — Drag/drop, rollback và keyboard
 
