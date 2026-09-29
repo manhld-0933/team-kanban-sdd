@@ -67,8 +67,13 @@ export async function signupAction(
   redirect("/boards");
 }
 
-export async function logoutAction(): Promise<void> {
+export async function logoutAction(
+  _previousState: AuthFormState,
+): Promise<AuthFormState> {
+  void _previousState;
+  const locale = await getRequestLocale();
   const supabase = await createClient();
-  await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut();
+  if (error) return { error: translate(locale, "logoutFailure") };
   redirect("/login");
 }

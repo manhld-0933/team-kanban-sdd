@@ -6,7 +6,7 @@
 
 ## Summary
 
-Xây dựng web application Kanban cho nhóm nhỏ với đăng ký/đăng nhập email-mật khẩu, giao diện tiếng Việt/English, board có vai trò chủ sở hữu/thành viên, column và card, kéo thả cập nhật tức thì có rollback, assign, comment và Activity Log. Hoàn thiện session lifecycle để auth page redirect đúng theo trạng thái đăng nhập, có logout từ workspace và hỗ trợ tạo một demo board idempotent với cards/membership/activity. Dùng Next.js App Router + TypeScript cho cả giao diện và backend-for-frontend, Supabase Auth cho danh tính và Supabase Postgres cho dữ liệu. Mọi dữ liệu board được bảo vệ bằng Row Level Security (RLS); các thao tác nhiều bản ghi cần tính nguyên tử, như tạo board mặc định, demo board hay di chuyển card và ghi log, thực hiện trong transaction ở Postgres.
+Xây dựng web application Kanban cho nhóm nhỏ với đăng ký/đăng nhập email-mật khẩu, giao diện tiếng Việt/English, board có vai trò chủ sở hữu/thành viên, column và card, kéo thả cập nhật tức thì có rollback, assign, comment và Activity Log. Hoàn thiện session lifecycle để auth page redirect đúng theo trạng thái đăng nhập, có logout từ workspace và hỗ trợ tạo một demo board idempotent riêng cho mỗi owner với cards mẫu được gán cho owner. Dùng Next.js App Router + TypeScript cho cả giao diện và backend-for-frontend, Supabase Auth cho danh tính và Supabase Postgres cho dữ liệu. Demo board không tạo Auth users hoặc board memberships ngoài owner hiện tại. Mọi dữ liệu board được bảo vệ bằng Row Level Security (RLS); các thao tác nhiều bản ghi cần tính nguyên tử, như tạo board mặc định, demo board hay di chuyển card và ghi log, thực hiện trong transaction ở Postgres.
 
 ## Technical Context
 

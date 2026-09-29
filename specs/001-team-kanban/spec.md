@@ -96,7 +96,7 @@ Người dùng đang đăng nhập được đưa thẳng về danh sách board 
 
 1. **Given** người dùng đã đăng nhập, **When** họ mở `/login` hoặc `/signup`, **Then** server chuyển họ về `/boards` và không render auth form.
 2. **Given** người dùng đang ở workspace, **When** họ chọn đăng xuất, **Then** Supabase session/cookie được xóa và trình duyệt chuyển tới `/login`; truy cập lại `/boards` yêu cầu đăng nhập.
-3. **Given** người dùng đã đăng nhập và chưa có demo board, **When** họ chọn tạo dữ liệu mẫu, **Then** hệ thống tạo một board cho owner hiện tại với ba column mặc định, các card ví dụ, membership của owner và activity tương ứng.
+3. **Given** người dùng đã đăng nhập và chưa có demo board, **When** họ chọn tạo dữ liệu mẫu, **Then** hệ thống tạo một board riêng cho owner hiện tại với ba column mặc định, các card ví dụ do owner phụ trách, owner membership và activity tương ứng.
 4. **Given** người dùng đã có demo board hoặc gửi request tạo lặp lại, **When** họ tạo dữ liệu mẫu lần nữa, **Then** hệ thống trả về demo board hiện có và không tạo bản sao.
 5. **Given** hai request tạo demo board đồng thời, **When** chúng được xử lý, **Then** database chỉ giữ một demo board cho owner và cả hai request nhận cùng board đó.
 
@@ -133,7 +133,8 @@ Người dùng đang đăng nhập được đưa thẳng về danh sách board 
 - **FR-017**: Giao diện MUST hỗ trợ tiếng Việt và tiếng Anh, mặc định là tiếng Việt, cho phép đổi ngôn ngữ mà không cần đăng xuất và ghi nhớ lựa chọn trên cùng trình duyệt. Mọi system-generated UI text, gồm validation, accessibility labels và các trạng thái loading/empty/error, MUST dùng ngôn ngữ đang chọn; nội dung do người dùng nhập MUST giữ nguyên.
 - **FR-018**: Người dùng có session hợp lệ khi mở `/login` hoặc `/signup` MUST được redirect ở server tới `/boards`; người dùng chưa đăng nhập khi truy cập workspace MUST được redirect tới `/login`.
 - **FR-019**: Workspace MUST cung cấp thao tác đăng xuất để kết thúc Supabase session, xóa auth cookies và redirect tới `/login`; thao tác thất bại MUST hiển thị thông báo phù hợp.
-- **FR-020**: Người dùng đã đăng nhập MUST có thể tạo dữ liệu mẫu gồm đúng một demo board cho mỗi owner, ba column mặc định, cards mẫu, membership owner và Activity Log tương ứng. Thao tác MUST idempotent và transaction bảo đảm không tạo board trùng khi request lặp hoặc đồng thời.
+- **FR-020**: Người dùng đã đăng nhập MUST có thể tạo dữ liệu mẫu gồm đúng một demo board riêng cho mỗi owner, ba column mặc định, cards mẫu được gán cho owner, owner membership và Activity Log. Thao tác MUST idempotent và transaction bảo đảm không tạo board trùng khi request lặp hoặc đồng thời; MUST NOT tạo Auth users hoặc board memberships mẫu.
+- **FR-021**: Chủ sở hữu MUST có thể xóa board từ danh sách boards sau khi xác nhận; thao tác xóa MUST xóa dữ liệu board phụ thuộc và từ chối member thường.
 
 ### Key Entities
 

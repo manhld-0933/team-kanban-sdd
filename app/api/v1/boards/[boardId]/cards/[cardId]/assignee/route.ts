@@ -34,7 +34,9 @@ export async function PUT(request: Request, { params }: RouteContext) {
     const members = await getBoardMembers(supabase, boardId);
     const assignee = targetUserId ? members.find((member) => member.userId === targetUserId) : null;
     if (targetUserId && !assignee) return apiError("VALIDATION_ERROR", "Assignee must be a member of this board.", 422);
-    if (current.assignee_user_id === targetUserId) return apiSuccess({ card: current, assignee });
+    if (current.assignee_user_id === targetUserId) {
+      return apiSuccess({ card: current, assignee });
+    }
 
     const { data, error } = await supabase.from("cards")
       .update({

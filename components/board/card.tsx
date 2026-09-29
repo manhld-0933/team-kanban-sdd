@@ -44,6 +44,7 @@ export function Card({
   const [description, setDescription] = useState(card.description ?? "");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const assignee = members.find((member) => member.userId === card.assignee_user_id);
 
   async function save(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -124,7 +125,7 @@ export function Card({
                 />
               </div>
               {card.assignee_user_id ? (
-                <p className="card-assignee">{t("assigneeTitle")}: {members.find((member) => member.userId === card.assignee_user_id)?.email ?? ""}</p>
+                <p className="card-assignee">{t("assigneeTitle")}: {assignee?.email || ""}</p>
               ) : null}
               <div className="card-detail-action"><CardDetails boardId={boardId} card={card} members={members} onUpdated={onBoardRefresh} /></div>
               {error ? <p className="form-message error" role="alert">{error}</p> : null}

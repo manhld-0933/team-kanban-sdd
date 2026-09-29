@@ -35,7 +35,7 @@ Liệt kê board mà current user là member. `200 { "data": [{ "id", "name", "r
 
 ### `POST /api/v1/demo/board`
 
-Người dùng đã đăng nhập tạo demo board cho chính mình. Request không có body. Lần đầu trả `201 { "data": { "id", "name", "isDemo": true } }`; các lần gọi sau trả `200` cùng demo board hiện có. Transaction tạo ba column mặc định, cards mẫu, owner membership, assignee mẫu thuộc board và Activity Log tương ứng. Tạo demo board và activity phải nguyên tử; unique partial index xử lý request đồng thời.
+Người dùng đã đăng nhập tạo/mở demo board riêng cho mình. Request không có body. Lần đầu trả `201 { "data": { "id", "name", "isDemo": true } }`; các lần gọi sau trả `200` cùng demo board hiện có. RPC transaction tạo board với owner membership, ba column mặc định, cards mẫu do owner phụ trách và Activity Log; unique partial index xử lý request đồng thời. Demo board không tạo hoặc thêm Auth users.
 
 ### `POST /api/v1/boards`
 
@@ -48,6 +48,10 @@ Member đọc board, columns, cards, member summaries và assignee summary. `200
 ### `PATCH /api/v1/boards/{boardId}`
 
 Chỉ owner đổi tên. Body `{ "name": "..." }`; trả `200 { "data": { "id", "name", "updatedAt" } }`.
+
+### `DELETE /api/v1/boards/{boardId}`
+
+Chỉ owner xóa board. Không có request body; xác nhận được thực hiện ở UI trước request. Trả `204` khi đã xóa board cùng cards, comments, members, columns và activity liên quan; non-owner nhận `403`.
 
 ## Members
 

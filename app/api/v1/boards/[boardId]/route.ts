@@ -55,3 +55,19 @@ export async function PATCH(request: Request, { params }: RouteContext) {
     return routeError(error);
   }
 }
+
+export async function DELETE(_request: Request, { params }: RouteContext) {
+  try {
+    const { boardId } = await params;
+    const { supabase, user } = await getAuthenticatedClient();
+    const role = await getBoardRole(supabase, boardId, user.id);
+    if (!role) return apiError("NOT_FOUND", "Board not found.", 404);
+    if (role !== "owner") return apiError("FORBIDDEN", "Only the board owner can delete it.", 403);
+
+    const { error } = await supabase.rpc("delete_board", { p_board_id: boardId });
+    if (error) throw error;
+    return new Response(null, { status: 204 });
+  } catch (error) {
+    return routeError(error);
+  }
+}

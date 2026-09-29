@@ -421,6 +421,12 @@ a {
   text-decoration: none;
 }
 
+.home-actions .home-primary,
+.home-actions .secondary-button {
+  min-height: 48px;
+  margin-top: 0;
+}
+
 .secondary-button {
   min-height: 47px;
   border: 1px solid var(--line);
@@ -435,6 +441,11 @@ a {
   outline: 3px solid rgb(89 101 216 / 35%);
   outline-offset: 3px;
 }
+
+.board-tile-card { position: relative; }
+.board-delete-button { position: absolute; right: 19px; top: 16px; z-index: 1; }
+.board-delete-button:hover { color: #a62339; border-color: #efc4cc; }
+.board-delete-button:focus-visible { outline: 3px solid rgb(89 101 216 / 28%); outline-offset: 2px; }
 
 @media (max-width: 520px) {
   .auth-card {

@@ -33,7 +33,7 @@ export async function proxy(request: NextRequest) {
     response.headers.set(name, value);
   }
 
-  if (!data?.claims?.sub) {
+  if (request.nextUrl.pathname.startsWith("/boards") && !data?.claims?.sub) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", request.nextUrl.pathname);
     const redirectResponse = NextResponse.redirect(loginUrl);
@@ -50,5 +50,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/boards/:path*"],
+  matcher: ["/boards/:path*", "/login", "/signup"],
 };

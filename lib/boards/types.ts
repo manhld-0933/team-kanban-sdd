@@ -3,6 +3,7 @@ export type BoardSummary = {
   name: string;
   createdAt: string;
   role: "owner" | "member";
+  isDemo: boolean;
 };
 
 export type BoardMember = {

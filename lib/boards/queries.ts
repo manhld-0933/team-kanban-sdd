@@ -7,11 +7,11 @@ async function mapBoardMembers(supabase: SupabaseClient, rows: { user_id: unknow
     .select("id, email")
     .in("id", rows.map((item) => item.user_id as string));
   if (error) throw error;
-  const emails = new Map((profiles ?? []).map((profile) => [profile.id as string, profile.email as string]));
+  const profilesById = new Map((profiles ?? []).map((profile) => [profile.id as string, profile]));
   return rows.map((item) => ({
     userId: item.user_id as string,
     role: item.role as "owner" | "member",
-    email: emails.get(item.user_id as string) ?? "",
+    email: profilesById.get(item.user_id as string)?.email as string ?? "",
   }));
 }
 
@@ -45,7 +45,7 @@ export async function listBoards(
   );
   const { data: boards, error } = await supabase
     .from("boards")
-    .select("id, name, created_at")
+    .select("id, name, created_at, is_demo")
     .in("id", [...roles.keys()])
     .order("created_at", { ascending: false });
 
@@ -55,6 +55,7 @@ export async function listBoards(
     name: board.name as string,
     createdAt: board.created_at as string,
     role: roles.get(board.id as string) ?? "member",
+    isDemo: board.is_demo as boolean,
   }));
 }
 
@@ -72,7 +73,7 @@ export async function getBoardDetail(
   if (boardError) throw boardError;
   if (!board) return null;
 
-  const [columnsResult, cardsResult, membersResult] = await Promise.all([
+  const [columnsResult, cardsResult, members] = await Promise.all([
     supabase
     .from("columns")
     .select("id, board_id, name, position, default_status_key")
@@ -83,16 +84,10 @@ export async function getBoardDetail(
     .select("id, board_id, column_id, title, description, assignee_user_id, position, version, created_at, updated_at")
     .eq("board_id", boardId)
     .order("position", { ascending: true }),
-    supabase
-      .from("board_members")
-      .select("user_id, role")
-      .eq("board_id", boardId)
-      .order("user_id", { ascending: true }),
+    getBoardMembers(supabase, boardId),
   ]);
   if (columnsResult.error) throw columnsResult.error;
   if (cardsResult.error) throw cardsResult.error;
-  if (membersResult.error) throw membersResult.error;
-  const members = await mapBoardMembers(supabase, membersResult.data ?? []);
 
   const cardsByColumn = new Map<string, CardRecord[]>();
   for (const card of (cardsResult.data ?? []) as CardRecord[]) {

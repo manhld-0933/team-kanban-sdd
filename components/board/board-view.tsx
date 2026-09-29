@@ -7,6 +7,7 @@ import { KanbanBoard } from "@/components/board/kanban-board";
 import { MemberManagement } from "@/components/board/member-management";
 import { ActivityFeed } from "@/components/board/activity-feed";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { LogoutButton } from "@/components/auth/logout-button";
 import { useLocale } from "@/components/i18n/locale-provider";
 import type { BoardDetail } from "@/lib/boards/types";
 
@@ -42,7 +43,7 @@ export function BoardView({ initialBoard }: { initialBoard: BoardDetail }) {
         <Link className="auth-brand" href="/boards" aria-label={t("boardBack")}>
           <span className="brand-mark" aria-hidden="true">K</span><span>Team Kanban</span>
         </Link>
-        <div className="workspace-header-actions"><Link className="back-link" href="/boards">← {t("boardBack")}</Link><LanguageSwitcher /></div>
+        <div className="workspace-header-actions"><Link className="back-link" href="/boards">← {t("boardBack")}</Link><LanguageSwitcher /><LogoutButton /></div>
       </header>
       <section className="board-page">
         <div className="board-heading-row">

@@ -42,14 +42,16 @@ Profile chỉ đọc được bởi thành viên cùng board hiện tại hoặc
 | `is_demo` | Boolean, mặc định `false`; đánh dấu demo board do hệ thống tạo, tối đa một board `is_demo=true` cho mỗi owner. |
 | `created_at`, `updated_at` | UTC; cập nhật khi board metadata đổi. |
 
-Board phải được tạo cùng membership role `owner` và ba column mặc định To Do, In Progress, Done trong một transaction. Board có nhiều membership; chỉ một owner. Demo board dùng owner hiện tại làm creator/owner, có card mẫu và activity được ghi bằng activity triggers; unique partial index bảo đảm mỗi owner chỉ có một demo board.
+Board phải được tạo cùng membership role `owner` và ba column mặc định To Do, In Progress, Done trong một transaction. Board có nhiều membership; chỉ một owner. Demo board dùng owner hiện tại làm creator/owner và người phụ trách mọi card mẫu; activity được ghi bằng activity triggers. Unique partial index bảo đảm mỗi owner chỉ có một demo board. Tạo demo board không tạo thêm Auth user hoặc membership.
+
+Chỉ owner được xóa board. Xóa board gỡ cards, comments, members, columns và activity phụ thuộc trong cùng transaction; activity log vẫn append-only với thao tác trực tiếp, nhưng được dọn theo cascade khi board cha bị xóa.
 
 ### BoardMember
 
 | Field | Rule |
 |---|---|
 | `board_id` | FK Board. |
-| `user_id` | FK Auth user. |
+| `user_id` | FK tới Auth user đã đăng ký. |
 | `role` | `owner` hoặc `member`. |
 | `joined_at` | UTC. |
 

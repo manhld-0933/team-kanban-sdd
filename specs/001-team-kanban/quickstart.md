@@ -25,14 +25,14 @@ Hướng dẫn smoke-test sau khi implementation hoàn tất. Đây là luồng 
    npx supabase status
    ```
 
-   Tạo `.env.local` ở repo root bằng các giá trị `API_URL` và `PUBLISHABLE_KEY` CLI vừa in ra:
+   Tạo `.env.local` ở repo root bằng `API_URL` và `PUBLISHABLE_KEY` CLI vừa in ra:
 
    ```env
    NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
    ```
 
-   Publishable key được phép ở browser khi grants/RLS đã cấu hình đúng. Không đặt secret/service-role key trong biến `NEXT_PUBLIC_*` hoặc gửi tới browser.
+   Publishable key được phép ở browser khi grants/RLS đã cấu hình đúng. Demo board chỉ dùng session hiện tại, không cần Supabase Auth Admin key.
 
 3. Áp dụng migration đang chờ theo cách incremental, không xóa dữ liệu local:
 
@@ -69,10 +69,19 @@ Hướng dẫn smoke-test sau khi implementation hoàn tất. Đây là luồng 
 
 1. Khi đang đăng nhập, mở trực tiếp `/login` hoặc `/signup`; xác nhận cả hai route chuyển tới `/boards`.
 2. Chọn logout ở workspace; xác nhận session kết thúc, UI chuyển về `/login`, và truy cập `/boards` lại yêu cầu đăng nhập.
-3. Đăng nhập lại và tạo demo board; xác nhận có đúng ba column, cards mẫu, owner membership, assignee hợp lệ và activity entries.
+3. Đăng nhập lại và tạo demo board; nếu board đã tồn tại, chọn **Mở board mẫu**. Xác nhận owner có một demo board riêng với ba column, cards mẫu được gán cho owner và activity entries; không tạo thêm Auth user hoặc member.
 4. Gọi thao tác tạo demo board lần nữa hoặc gửi hai request đồng thời; xác nhận cùng một demo board được trả về và không có bản ghi trùng.
 
 **Expected**: Auth redirects giữ trạng thái nhất quán và tạo demo board idempotent không nhân bản dữ liệu.
+
+## Scenario G — Xóa board
+
+1. Từ danh sách boards, xác nhận owner thấy nút xóa trên board của mình.
+2. Hủy hộp thoại xác nhận; xác nhận board vẫn còn.
+3. Xác nhận xóa; board biến mất khỏi danh sách và cards, comments, members, columns, activity liên quan được xóa cùng transaction.
+4. Đăng nhập bằng member của board khác; xác nhận không có nút xóa và DELETE API bị từ chối.
+
+**Expected**: Chỉ owner xóa được board; xóa board dọn dữ liệu phụ thuộc nhất quán.
 
 ## Scenario B — Vietnamese / English
 
